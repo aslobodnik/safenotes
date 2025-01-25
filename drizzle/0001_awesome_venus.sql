@@ -1,0 +1,1 @@
+ALTER TABLE "transfer_categories" ALTER COLUMN "category_id" SET DATA TYPE uuid;
