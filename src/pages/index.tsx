@@ -32,6 +32,8 @@ export default function Home() {
       )
     : transfers;
 
+  console.log(filteredTransfers.length);
+
   return (
     <main className="container mx-auto p-4">
       <SafeSelector value={selectedSafe} onChange={setSelectedSafe} />

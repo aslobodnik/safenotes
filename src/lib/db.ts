@@ -38,7 +38,7 @@ export async function getDb(): Promise<DB> {
         transaction_hash TEXT NOT NULL,          -- Transaction hash
         from_address TEXT NOT NULL,              -- Sender address
         to_address TEXT NOT NULL,                -- Recipient address
-        value TEXT NOT NULL,                     -- Amount transferred (in base units)
+        value TEXT,                              -- Amount transferred (in base units)
         token_address TEXT,                      -- NULL for ETH, token contract for ERC20
         token_name TEXT,                         -- NULL for ETH, token name for ERC20
         token_symbol TEXT,                       -- NULL for ETH, token symbol for ERC20

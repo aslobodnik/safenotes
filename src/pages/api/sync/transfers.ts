@@ -24,7 +24,7 @@ export default async function handler(
     for (const safe of safes) {
       console.log(`\n--- Processing safe: ${safe.address} ---`);
 
-      const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${safe.address}/transfers/`;
+      const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${safe.address}/transfers/?limit=1000`;
       console.log(`Fetching transfers from: ${apiUrl}`);
 
       const response = await fetch(apiUrl);
