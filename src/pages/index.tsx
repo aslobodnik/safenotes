@@ -24,13 +24,11 @@ export default function Home() {
     };
 
     fetchTransfers();
-  }, [currentPage]);
+  }, [currentPage, selectedSafe]);
 
   const filteredTransfers = selectedSafe
     ? transfers.filter(
-        (transfer) =>
-          transfer.from.toLowerCase() === selectedSafe.toLowerCase() ||
-          transfer.to.toLowerCase() === selectedSafe.toLowerCase()
+        (transfer) => transfer.safe.toLowerCase() === selectedSafe.toLowerCase()
       )
     : transfers;
 

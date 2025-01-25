@@ -22,18 +22,10 @@ export default async function handler(
     }
 
     for (const safe of safes) {
-      console.log("Processing safe:", safe.address); // Debug log
+      console.log(`\n--- Processing safe: ${safe.address} ---`);
 
-      // Fetch latest transfer for this safe
-      const lastTransfer = await db.get(
-        "SELECT block_number FROM transfers WHERE safe_address = ? ORDER BY block_number DESC LIMIT 1",
-        [safe.address]
-      );
-      console.log("Last transfer:", lastTransfer); // Debug log
-
-      // Fetch new transfers from API
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/safes/${safe.address}/transfers`;
-      console.log("Fetching from:", apiUrl); // Debug log
+      const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${safe.address}/transfers/`;
+      console.log(`Fetching transfers from: ${apiUrl}`);
 
       const response = await fetch(apiUrl);
       if (!response.ok) {
@@ -46,6 +38,12 @@ export default async function handler(
 
       const data = await response.json();
       let safeNewRecords = 0;
+
+      const lastTransfer = await db.get(
+        "SELECT block_number FROM transfers WHERE safe_address = ? ORDER BY block_number DESC LIMIT 1",
+        [safe.address]
+      );
+      console.log("Last transfer:", lastTransfer); // Debug log
 
       // Insert only new transfers
       for (const transfer of data.results) {
