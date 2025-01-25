@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getDb } from "@/lib/db";
+import db from "@/db/index";
+import { eq } from 'drizzle-orm';
+import { safes } from '@/db/schema';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -29,16 +31,14 @@ export default async function handler(
   try {
     const page = Number(req.query.page) || 1;
     const includeRemoved = req.query.includeRemoved === "true";
-    const db = await getDb();
 
-    const safes = await db.all(
-      `SELECT address FROM safes WHERE ${
-        !includeRemoved ? "removed = 0" : "1=1"
-      }`
-    );
+    // Get safes using Drizzle
+    const safesList = includeRemoved 
+      ? await db.select().from(safes)
+      : await db.select().from(safes).where(eq(safes.removed, false));
 
     let allTransfers: Transfer[] = [];
-    for (const safe of safes) {
+    for (const safe of safesList) {
       const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${safe.address}/transfers/?limit=1000`;
       const response = await fetch(apiUrl);
 
@@ -56,17 +56,15 @@ export default async function handler(
         })
         .map((transfer: Transfer) => ({
           ...transfer,
-          safe: safe.address, // Add safe address to each transfer
+          safe: safe.address,
         }));
 
       allTransfers = [...allTransfers, ...trustedTransfers];
     }
 
     // Sort by execution date, most recent first
-    allTransfers.sort(
-      (a, b) =>
-        new Date(b.executionDate).getTime() -
-        new Date(a.executionDate).getTime()
+    allTransfers.sort((a, b) =>
+      new Date(b.executionDate).getTime() - new Date(a.executionDate).getTime()
     );
 
     const totalItems = allTransfers.length;
