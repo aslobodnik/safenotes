@@ -1,5 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getDb } from "@/lib/db";
+import db from "@/db/index";
+import { categories } from "@/db/schema";
+import { asc } from "drizzle-orm";
 
 export default async function handler(
   req: NextApiRequest,
@@ -7,9 +9,12 @@ export default async function handler(
 ) {
   if (req.method === "GET") {
     try {
-      const db = await getDb();
-      const categories = await db.all("SELECT * FROM categories ORDER BY name");
-      return res.status(200).json(categories);
+      const categoryList = await db
+        .select()
+        .from(categories)
+        .orderBy(asc(categories.name));
+        
+      return res.status(200).json(categoryList);
     } catch (error) {
       console.error("Error fetching categories:", error);
       return res.status(500).json({ error: "Failed to fetch categories" });
@@ -24,17 +29,19 @@ export default async function handler(
         return res.status(400).json({ error: "Category name is required" });
       }
 
-      const db = await getDb();
-      await db.run("INSERT INTO categories (name) VALUES (?)", [name.trim()]);
+      await db.insert(categories).values({
+        name: name.trim(),
+      });
 
-      const categories = await db.all("SELECT * FROM categories ORDER BY name");
-      return res.status(200).json(categories);
-    } catch (error: Error | unknown) {
-      // Handle SQLite unique constraint violation
-      if (
-        error instanceof Error &&
-        error.message.includes("UNIQUE constraint failed")
-      ) {
+      const categoryList = await db
+        .select()
+        .from(categories)
+        .orderBy(asc(categories.name));
+
+      return res.status(200).json(categoryList);
+    } catch (error) {
+      // Handle Postgres unique constraint violation
+      if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
         return res.status(400).json({ error: "Category already exists" });
       }
 
