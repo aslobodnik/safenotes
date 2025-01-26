@@ -3,8 +3,11 @@ import { TransferResponse, Transfer, PaginationInfo } from "@/types/transfers";
 import SafeSelector from "@/components/SafeSelector";
 import TransactionTable from "@/components/TransactionTable";
 import { Layout } from "@/components/Layout";
+import { trpc } from "@/utils/trpc";
 
 export default function Home() {
+  const { data, isLoading, error } = trpc.hello.useQuery({ text: "client" });
+
   const [selectedSafe, setSelectedSafe] = useState("");
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -29,14 +32,18 @@ export default function Home() {
 
   const filteredTransfers = selectedSafe
     ? transfers.filter(
-        (transfer) => transfer.safe.toLowerCase() === selectedSafe.toLowerCase()
-      )
+      (transfer) => transfer.safe.toLowerCase() === selectedSafe.toLowerCase()
+    )
     : transfers;
 
   console.log(filteredTransfers.length);
 
   return (
     <Layout>
+      <h1>Hello</h1>
+      {data && <p>{data.greeting}</p>}
+      {isLoading && <p>Loading...</p>}
+      {error && <p>Error: {error.message}</p>}
       <div className="space-y-4">
         <SafeSelector value={selectedSafe} onChange={setSelectedSafe} />
         <TransactionTable

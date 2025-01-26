@@ -6,6 +6,7 @@ import type { Session } from 'next-auth'
 import { SessionProvider } from 'next-auth/react'
 import { AppProps } from 'next/app'
 import { WagmiProvider } from 'wagmi'
+import { trpc } from '../utils/trpc';
 
 import { wagmiConfig } from '@/lib/web3'
 import '@/styles/globals.css'
@@ -16,7 +17,7 @@ type Props = AppProps<{
   session: Session
 }>
 
-export default function App({ Component, pageProps }: Props) {
+function App({ Component, pageProps }: Props) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <SessionProvider refetchInterval={0} session={pageProps.session}>
@@ -31,3 +32,5 @@ export default function App({ Component, pageProps }: Props) {
     </WagmiProvider>
   )
 }
+
+export default trpc.withTRPC(App);
