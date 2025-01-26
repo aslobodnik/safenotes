@@ -1,4 +1,5 @@
-import { initTRPC, TRPCError } from '@trpc/server'
+import { TRPCError, initTRPC } from '@trpc/server'
+import superjson from 'superjson'
 
 import { Context } from './context'
 
@@ -7,9 +8,10 @@ import { Context } from './context'
  * Should be done only once per backend!
  */
 const t = initTRPC.context<Context>().create({
-    errorFormatter: ({ shape }) => {
-        return shape
-    }
+  transformer: superjson,
+  errorFormatter: ({ shape }) => {
+    return shape
+  },
 })
 
 /**

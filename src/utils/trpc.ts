@@ -2,6 +2,7 @@ import { httpBatchLink } from '@trpc/client'
 import { createTRPCNext } from '@trpc/next'
 import { createTRPCReact } from '@trpc/react-query'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
+import superjson from 'superjson'
 
 import type { AppRouter } from '@/server/index'
 
@@ -24,6 +25,7 @@ export const trpc = createTRPCReact<AppRouter>()
 export const trpcNext = createTRPCNext<AppRouter>({
   config() {
     return {
+      transformer: superjson,
       links: [
         httpBatchLink({
           /**
