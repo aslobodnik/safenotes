@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { TransferResponse, Transfer, PaginationInfo } from "@/types/transfers";
 import SafeSelector from "@/components/SafeSelector";
 import TransactionTable from "@/components/TransactionTable";
+import { Layout } from "@/components/Layout";
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState("");
@@ -35,14 +36,16 @@ export default function Home() {
   console.log(filteredTransfers.length);
 
   return (
-    <main className="container mx-auto p-4">
-      <SafeSelector value={selectedSafe} onChange={setSelectedSafe} />
-      <TransactionTable
-        transfers={filteredTransfers}
-        safeAddress={selectedSafe}
-        pagination={pagination}
-        onPageChange={setCurrentPage}
-      />
-    </main>
+    <Layout>
+      <div className="space-y-4">
+        <SafeSelector value={selectedSafe} onChange={setSelectedSafe} />
+        <TransactionTable
+          transfers={filteredTransfers}
+          safeAddress={selectedSafe}
+          pagination={pagination}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    </Layout>
   );
 }

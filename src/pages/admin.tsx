@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Layout } from "@/components/Layout";
 
 type Category = {
   id: number;
@@ -11,7 +12,7 @@ type Safe = {
   address: string;
 };
 
-export default function AdminPage() {
+export default function Admin() {
   const [newSafe, setNewSafe] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -158,118 +159,123 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+    <Layout>
+      <div>
+        <h1 className="text-2xl font-bold mb-4">Admin</h1>
+        <div className="container mx-auto p-8">
+          <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Safes Section */}
-        <div>
-          <div className="p-6 border rounded-lg mb-4">
-            <h2 className="text-xl font-semibold mb-4">Add New Safe</h2>
-            <form onSubmit={handleAddSafe}>
-              <div className="mb-4">
-                <label htmlFor="safeAddress" className="block mb-2">
-                  Safe Address
-                </label>
-                <input
-                  type="text"
-                  id="safeAddress"
-                  value={newSafe}
-                  onChange={(e) => setNewSafe(e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder="0x..."
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Add Safe
-              </button>
-            </form>
-          </div>
-
-          {/* List of Current Safes */}
-          <div className="p-6 border rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Current Safes</h2>
-            <div className="space-y-2">
-              {safes.length === 0 ? (
-                <p className="text-gray-500">No safes added yet</p>
-              ) : (
-                safes.map((safe) => (
-                  <div
-                    key={safe.address}
-                    className="flex items-center justify-between p-2 border rounded"
-                  >
-                    <span className="font-mono">{safe.address}</span>
-                    <button
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => handleDeleteSafe(safe.address)}
-                    >
-                      ×
-                    </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Safes Section */}
+            <div>
+              <div className="p-6 border rounded-lg mb-4">
+                <h2 className="text-xl font-semibold mb-4">Add New Safe</h2>
+                <form onSubmit={handleAddSafe}>
+                  <div className="mb-4">
+                    <label htmlFor="safeAddress" className="block mb-2">
+                      Safe Address
+                    </label>
+                    <input
+                      type="text"
+                      id="safeAddress"
+                      value={newSafe}
+                      onChange={(e) => setNewSafe(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      placeholder="0x..."
+                      required
+                    />
                   </div>
-                ))
-              )}
+                  <button
+                    type="submit"
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  >
+                    Add Safe
+                  </button>
+                </form>
+              </div>
+
+              {/* List of Current Safes */}
+              <div className="p-6 border rounded-lg">
+                <h2 className="text-xl font-semibold mb-4">Current Safes</h2>
+                <div className="space-y-2">
+                  {safes.length === 0 ? (
+                    <p className="text-gray-500">No safes added yet</p>
+                  ) : (
+                    safes.map((safe) => (
+                      <div
+                        key={safe.address}
+                        className="flex items-center justify-between p-2 border rounded"
+                      >
+                        <span className="font-mono">{safe.address}</span>
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeleteSafe(safe.address)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Categories Section */}
-        <div>
-          <div className="p-6 border rounded-lg mb-4">
-            <h2 className="text-xl font-semibold mb-4">Add New Category</h2>
-            <form onSubmit={handleAddCategory}>
-              <div className="mb-4">
-                <label htmlFor="category" className="block mb-2">
-                  Category Name
-                </label>
-                <input
-                  type="text"
-                  id="category"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder="Enter category name"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Add Category
-              </button>
-            </form>
-          </div>
-
-          {/* List of Current Categories */}
-          <div className="p-6 border rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Current Categories</h2>
-            <div className="space-y-2">
-              {categories.length === 0 ? (
-                <p className="text-gray-500">No categories added yet</p>
-              ) : (
-                categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center justify-between p-2 border rounded"
-                  >
-                    <span>{category.name}</span>
-                    <button
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => handleDeleteCategory(category.id)}
-                    >
-                      ×
-                    </button>
+            {/* Categories Section */}
+            <div>
+              <div className="p-6 border rounded-lg mb-4">
+                <h2 className="text-xl font-semibold mb-4">Add New Category</h2>
+                <form onSubmit={handleAddCategory}>
+                  <div className="mb-4">
+                    <label htmlFor="category" className="block mb-2">
+                      Category Name
+                    </label>
+                    <input
+                      type="text"
+                      id="category"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      placeholder="Enter category name"
+                      required
+                    />
                   </div>
-                ))
-              )}
+                  <button
+                    type="submit"
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  >
+                    Add Category
+                  </button>
+                </form>
+              </div>
+
+              {/* List of Current Categories */}
+              <div className="p-6 border rounded-lg">
+                <h2 className="text-xl font-semibold mb-4">Current Categories</h2>
+                <div className="space-y-2">
+                  {categories.length === 0 ? (
+                    <p className="text-gray-500">No categories added yet</p>
+                  ) : (
+                    categories.map((category) => (
+                      <div
+                        key={category.id}
+                        className="flex items-center justify-between p-2 border rounded"
+                      >
+                        <span>{category.name}</span>
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeleteCategory(category.id)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
