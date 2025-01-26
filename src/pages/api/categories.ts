@@ -1,4 +1,4 @@
-import { asc } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { db } from '@/db'
@@ -53,6 +53,30 @@ export default async function handler(
 
       console.error('Error adding category:', error)
       return res.status(500).json({ error: 'Failed to add category' })
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    try {
+      const { id } = req.body
+
+      if (!id || typeof id !== 'string') {
+        return res
+          .status(400)
+          .json({ error: 'Category ID must be a valid UUID' })
+      }
+
+      await db.delete(categories).where(eq(categories.id, id))
+
+      const categoryList = await db
+        .select()
+        .from(categories)
+        .orderBy(asc(categories.name))
+
+      return res.status(200).json(categoryList)
+    } catch (error) {
+      console.error('Error deleting category:', error)
+      return res.status(500).json({ error: 'Failed to delete category' })
     }
   }
 

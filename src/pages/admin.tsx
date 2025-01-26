@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Layout } from '@/components/Layout'
 
 type Category = {
-  id: number
+  id: string
   name: string
 }
 
@@ -131,10 +131,14 @@ export default function Admin() {
     }
   }
 
-  const handleDeleteCategory = async (id: number) => {
+  const handleDeleteCategory = async (id: string) => {
     try {
-      const response = await fetch(`/api/categories/${id}`, {
+      const response = await fetch('/api/categories', {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
       })
 
       if (!response.ok) {
