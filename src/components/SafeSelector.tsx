@@ -1,39 +1,62 @@
-import { useEffect, useState } from "react";
-import { Safe } from "@/types/transfers";
+import { useQuery } from '@tanstack/react-query'
+import { Address } from 'viem'
+
+import { publicClient } from '@/lib/web3'
+import { Safe } from '@/types/transfers'
 
 interface SafeSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+  safeAddress: string | null
+  onChange: (value: string) => void
 }
 
-export default function SafeSelector({ value, onChange }: SafeSelectorProps) {
-  const [safes, setSafes] = useState<Safe[]>([]);
+export default function SafeSelector({
+  safeAddress,
+  onChange,
+}: SafeSelectorProps) {
+  const safes = useQuery({
+    queryKey: ['safe-selector'],
+    queryFn: async () => {
+      const response = await fetch(`/api/safes`)
 
-  useEffect(() => {
-    const fetchSafes = async () => {
-      const response = await fetch("/api/safes");
-      if (response.ok) {
-        const data = await response.json();
-        setSafes(data);
+      if (!response.ok) {
+        throw new Error('Failed to fetch safe transfers')
       }
-    };
-    fetchSafes();
-  }, []);
+
+      const data: Safe[] = await response.json()
+
+      const names = await Promise.all(
+        data.map(async (safe) => {
+          const name = await publicClient.getEnsName({
+            address: safe.address as Address,
+          })
+
+          return {
+            ...safe,
+            name,
+          }
+        })
+      )
+
+      return names
+    },
+  })
 
   return (
     <div className="mb-4">
       <select
-        value={value}
+        value={safeAddress || ''}
         onChange={(e) => onChange(e.target.value)}
-        className="p-2 border rounded-md min-w-[300px] text-black"
+        className="min-w-[300px] rounded-md border p-2 text-black"
       >
         <option value="">Select a Safe</option>
-        {safes.map((safe) => (
+        {safes.data?.map((safe) => (
           <option key={safe.address} value={safe.address}>
-            {`${safe.address.slice(0, 6)}...${safe.address.slice(-4)}`}
+            {safe.name
+              ? safe.name
+              : `${safe.address.slice(0, 6)}...${safe.address.slice(-4)}`}
           </option>
         ))}
       </select>
     </div>
-  );
+  )
 }

@@ -20,7 +20,7 @@ export const wagmiConfig = createConfig({
   chains,
   connectors,
   transports: {
-    [mainnet.id]: http(),
+    [mainnet.id]: http(process.env.NEXT_PUBLIC_RPC_ENDPOINT),
   },
 })
 

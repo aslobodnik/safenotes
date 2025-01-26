@@ -1,41 +1,35 @@
+import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import TransactionTable from '@/components/TransactionTable'
-import { PaginationInfo, Transfer, TransferResponse } from '@/types/transfers'
+import { TransferResponse } from '@/types/transfers'
 
 export default function Home() {
-  const [selectedSafe, setSelectedSafe] = useState('')
-  const [transfers, setTransfers] = useState<Transfer[]>([])
-  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
-  useEffect(() => {
-    const fetchTransfers = async () => {
-      try {
-        const response = await fetch(`/api/transfers?page=${currentPage}`)
-        if (response.ok) {
-          const data: TransferResponse = await response.json()
-          setTransfers(data.results)
-          setPagination(data.pagination)
-        }
-      } catch (error) {
-        console.error('Failed to fetch transfers:', error)
+  const { data, isLoading } = useQuery<TransferResponse>({
+    queryKey: ['transfers', currentPage, selectedSafe],
+    queryFn: async () => {
+      const url = new URL('/api/transfers', window.location.origin)
+      url.searchParams.set('page', currentPage.toString())
+
+      if (selectedSafe) {
+        url.searchParams.set('safe', selectedSafe)
       }
-    }
 
-    fetchTransfers()
-  }, [currentPage, selectedSafe])
+      const response = await fetch(url)
 
-  const filteredTransfers = selectedSafe
-    ? transfers.filter(
-        (transfer) => transfer.safe.toLowerCase() === selectedSafe.toLowerCase()
-      )
-    : transfers
+      if (!response.ok) {
+        throw new Error('Failed to fetch transfers')
+      }
 
-  console.log(filteredTransfers.length)
+      return await response.json()
+    },
+  })
 
   return (
     <Layout>
@@ -48,13 +42,15 @@ export default function Home() {
             height={120}
             priority
           />
-          <SafeSelector value={selectedSafe} onChange={setSelectedSafe} />
+          <SafeSelector safeAddress={selectedSafe} onChange={setSelectedSafe} />
         </div>
+
         <TransactionTable
-          transfers={filteredTransfers}
+          transfers={data?.results || []}
           safeAddress={selectedSafe}
-          pagination={pagination}
+          pagination={data?.pagination || null}
           onPageChange={setCurrentPage}
+          isLoading={isLoading}
         />
       </div>
     </Layout>
