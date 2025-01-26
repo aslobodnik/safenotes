@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { Layout } from '@/components/Layout'
+import { SafeListItem } from '@/components/SafeListItem'
 import { api } from '@/utils/trpc'
 
 export default function Admin() {
@@ -128,18 +129,11 @@ export default function Admin() {
                     <p className="text-gray-500">No safes added yet</p>
                   ) : (
                     safes.map((safe) => (
-                      <div
+                      <SafeListItem
                         key={safe.address}
-                        className="flex items-center justify-between rounded border p-2"
-                      >
-                        <span className="font-mono">{safe.address}</span>
-                        <button
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => handleDeleteSafe(safe.address)}
-                        >
-                          ×
-                        </button>
-                      </div>
+                        safe={safe}
+                        onDelete={handleDeleteSafe}
+                      />
                     ))
                   )}
                 </div>
