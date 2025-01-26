@@ -1,8 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { Address } from 'viem'
-
-import { publicClient } from '@/lib/web3'
-import { Safe } from '@/types/transfers'
+import { api } from '@/utils/trpc'
 
 interface SafeSelectorProps {
   safeAddress: string | null
@@ -13,33 +9,7 @@ export default function SafeSelector({
   safeAddress,
   onChange,
 }: SafeSelectorProps) {
-  const safes = useQuery({
-    queryKey: ['safe-selector'],
-    queryFn: async () => {
-      const response = await fetch(`/api/safes`)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch safe transfers')
-      }
-
-      const data: Safe[] = await response.json()
-
-      const names = await Promise.all(
-        data.map(async (safe) => {
-          const name = await publicClient.getEnsName({
-            address: safe.address as Address,
-          })
-
-          return {
-            ...safe,
-            name,
-          }
-        })
-      )
-
-      return names
-    },
-  })
+  const { data: safes, isLoading } = api.safes.getAllSafesWithEns.useQuery()
 
   return (
     <div className="mb-4">
@@ -49,13 +19,19 @@ export default function SafeSelector({
         className="min-w-[300px] rounded-md border p-2 text-black"
       >
         <option value="">Select a Safe</option>
-        {safes.data?.map((safe) => (
-          <option key={safe.address} value={safe.address}>
-            {safe.name
-              ? safe.name
-              : `${safe.address.slice(0, 6)}...${safe.address.slice(-4)}`}
+        {isLoading && (
+          <option value="" disabled>
+            Loading safes...
           </option>
-        ))}
+        )}
+        {safes &&
+          safes.map((safe) => (
+            <option key={safe.address} value={safe.address}>
+              {safe.name
+                ? safe.name
+                : `${safe.address.slice(0, 6)}...${safe.address.slice(-4)}`}
+            </option>
+          ))}
       </select>
     </div>
   )

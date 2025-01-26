@@ -4,23 +4,22 @@ import '@rainbow-me/rainbowkit/styles.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Session } from 'next-auth'
 import { SessionProvider } from 'next-auth/react'
-import { AppProps } from 'next/app'
+import { AppType } from 'next/app'
 import { WagmiProvider } from 'wagmi'
 
 import { wagmiConfig } from '@/lib/web3'
 import '@/styles/globals.css'
-import { trpc } from '@/utils/trpc'
+import { api } from '@/utils/trpc'
 
 const queryClient = new QueryClient()
 
-type Props = AppProps<{
-  session: Session
-}>
-
-function App({ Component, pageProps }: Props) {
+const MyApp: AppType<{ session: Session | null }> = ({
+  Component,
+  pageProps: { session, ...pageProps },
+}) => {
   return (
     <WagmiProvider config={wagmiConfig}>
-      <SessionProvider refetchInterval={0} session={pageProps.session}>
+      <SessionProvider refetchInterval={0} session={session}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitSiweNextAuthProvider>
             <RainbowKitProvider modalSize="compact">
@@ -33,4 +32,4 @@ function App({ Component, pageProps }: Props) {
   )
 }
 
-export default trpc.withTRPC(App)
+export default api.withTRPC(MyApp)
