@@ -6,10 +6,10 @@ import type { Session } from 'next-auth'
 import { SessionProvider } from 'next-auth/react'
 import { AppProps } from 'next/app'
 import { WagmiProvider } from 'wagmi'
-import { trpc } from '../utils/trpc';
 
 import { wagmiConfig } from '@/lib/web3'
 import '@/styles/globals.css'
+import { trpc } from '@/utils/trpc'
 
 const queryClient = new QueryClient()
 
@@ -33,4 +33,4 @@ function App({ Component, pageProps }: Props) {
   )
 }
 
-export default trpc.withTRPC(App);
+export default trpc.withTRPC(App)

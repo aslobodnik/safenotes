@@ -1,8 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { Address } from 'viem'
-
-import { publicClient } from '@/lib/web3'
-import { Safe } from '@/types/transfers'
+import { trpc } from '@/utils/trpc'
 
 interface SafeSelectorProps {
   safeAddress: string | null
@@ -13,33 +9,7 @@ export default function SafeSelector({
   safeAddress,
   onChange,
 }: SafeSelectorProps) {
-  const safes = useQuery({
-    queryKey: ['safe-selector'],
-    queryFn: async () => {
-      const response = await fetch(`/api/safes`)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch safe transfers')
-      }
-
-      const data: Safe[] = await response.json()
-
-      const names = await Promise.all(
-        data.map(async (safe) => {
-          const name = await publicClient.getEnsName({
-            address: safe.address as Address,
-          })
-
-          return {
-            ...safe,
-            name,
-          }
-        })
-      )
-
-      return names
-    },
-  })
+  const safes = trpc.getSafes.useQuery()
 
   return (
     <div className="mb-4">
