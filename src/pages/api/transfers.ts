@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-import db from '@/db/index'
+import { db } from '@/db/index'
 import { safes } from '@/db/schema'
 
 const ITEMS_PER_PAGE = 20
