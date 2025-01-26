@@ -1,15 +1,15 @@
-import { inferAsyncReturnType } from '@trpc/server'
 import { CreateNextContextOptions } from '@trpc/server/adapters/next'
+import { getSession } from 'next-auth/react'
 
 import { db } from '@/db'
 
 export async function createContext(opts: CreateNextContextOptions) {
+  const session = await getSession({ req: opts.req })
+
   return {
     db,
-    // Add any other context items you need
-    req: opts.req,
-    res: opts.res,
+    session,
   }
 }
 
-export type Context = inferAsyncReturnType<typeof createContext>
+export type Context = Awaited<ReturnType<typeof createContext>>
