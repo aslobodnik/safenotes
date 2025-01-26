@@ -1,4 +1,7 @@
-import { getDb } from "@/lib/db";
+import db from "@/db/index";
+import { eq } from 'drizzle-orm';
+import { safes } from '@/db/schema';
+
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -7,17 +10,8 @@ export default async function handler(
 ) {
   if (req.method === "GET") {
     try {
-      const includeRemoved = req.query.includeRemoved === "true";
-      const db = await getDb();
-
-      const safes = await db.all(
-        `SELECT address, removed, removed_at 
-         FROM safes 
-         WHERE ${!includeRemoved ? "removed = 0" : "1=1"}
-         ORDER BY address`
-      );
-
-      return res.status(200).json(safes);
+      const safesList = await db.select().from(safes).where(eq(safes.removed, false));
+      return res.status(200).json(safesList);
     } catch (error) {
       console.error("Error fetching safes:", error);
       return res.status(500).json({ error: "Failed to fetch safes" });
@@ -34,18 +28,15 @@ export default async function handler(
 
       // Validate address format
       if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
-        return res
-          .status(400)
-          .json({ error: "Invalid Ethereum address format" });
+        return res.status(400).json({ error: "Invalid Ethereum address format" });
       }
 
-      const db = await getDb();
-
-      // Insert new safe
-      await db.run(
-        "INSERT INTO safes (address, removed, removed_at) VALUES (?, 0, NULL)",
-        [address]
-      );
+      // Insert new safe using Drizzle
+      await db.insert(safes).values({
+        address,
+        removed: false,
+        removedAt: null
+      });
 
       return res.status(201).json({ message: "Safe added successfully" });
     } catch (error) {
