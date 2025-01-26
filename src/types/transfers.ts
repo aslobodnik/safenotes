@@ -1,3 +1,18 @@
+export interface Transfer {
+  transferId: string
+  transactionHash: string
+  to: string
+  from: string
+  value: string
+  executionDate: string
+  tokenInfo?: {
+    symbol: string
+    decimals: number
+    trusted: boolean
+  }
+  safe: string
+}
+
 export interface TokenInfo {
   type: string
   address: string
@@ -8,22 +23,6 @@ export interface TokenInfo {
   trusted: boolean
 }
 
-export interface Transfer {
-  type: 'ETHER_TRANSFER' | 'ERC20_TRANSFER'
-  executionDate: string
-  blockNumber: number
-  transactionHash: string
-  to: string
-  from: string
-  value: string
-  tokenId: string | null
-  tokenAddress: string | null
-  transferId: string
-  tokenInfo: TokenInfo | null
-  safe: string // Adding safe address to track which safe it belongs to
-  category?: string
-  description?: string
-}
 
 export interface PaginationInfo {
   currentPage: number

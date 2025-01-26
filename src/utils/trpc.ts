@@ -1,8 +1,9 @@
 import { httpBatchLink } from '@trpc/client'
 import { createTRPCNext } from '@trpc/next'
+import { createTRPCReact } from '@trpc/react-query'
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
 
-import type { AppRouter } from '../server/routers/_app'
+import type { AppRouter } from '@/server/index'
 
 function getBaseUrl() {
   if (typeof window !== 'undefined')
@@ -18,7 +19,9 @@ function getBaseUrl() {
   return `http://localhost:${process.env.PORT ?? 3000}`
 }
 
-export const trpc = createTRPCNext<AppRouter>({
+export const trpc = createTRPCReact<AppRouter>()
+
+export const trpcNext = createTRPCNext<AppRouter>({
   config() {
     return {
       links: [
@@ -44,6 +47,9 @@ export const trpc = createTRPCNext<AppRouter>({
   ssr: false,
 })
 
-// Types for inputs/outputs of your procedures
+/**
+ * Inference helpers for input/output types
+ * @example type HelloInput = RouterInputs['example']['hello']
+ **/
 export type RouterInputs = inferRouterInputs<AppRouter>
 export type RouterOutputs = inferRouterOutputs<AppRouter>

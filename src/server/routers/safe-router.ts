@@ -3,9 +3,9 @@ import { eq } from 'drizzle-orm'
 // import { z } from 'zod'
 
 import { safes } from '@/db/schema'
-import { publicProcedure, router } from '@/server/trpc'
+import { publicProcedure, createTRPCRouter } from '@/server/trpc'
 
-export const safeRouter = router({
+export const safeRouter = createTRPCRouter({
   getSafes: publicProcedure.query(async ({ ctx }) => {
     const safesList = await ctx.db
       .select()

@@ -6,45 +6,22 @@ import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import TransactionTable from '@/components/TransactionTable'
 import { TransferResponse } from '@/types/transfers'
-import { trpc } from '@/utils/trpc'
+import { trpcNext } from '@/utils/trpc'
+import { SafeItem, Transfer } from '@/db/schema'
 
 export default function Home() {
-  const {
-    data: safesData,
-    isLoading: isSafesLoaing,
-    isError: isSafesError,
-  } = trpc.safes.getSafes.useQuery()
-
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
-  const { data, isLoading } = useQuery<TransferResponse>({
-    queryKey: ['transfers', currentPage, selectedSafe],
-    queryFn: async () => {
-      const url = new URL('/api/transfers', window.location.origin)
-      url.searchParams.set('page', currentPage.toString())
-
-      if (selectedSafe) {
-        url.searchParams.set('safe', selectedSafe)
-      }
-
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch transfers')
-      }
-
-      return await response.json()
-    },
+  const { data, isLoading } = trpcNext.transfers.getTransfers.useQuery({
+    page: currentPage,
+    safeAddress: selectedSafe,
+    includeRemoved: false,
   })
-
+  const { data: safesData } = trpcNext.safes.getSafes.useQuery()
+  
   return (
     <Layout>
-      <div>
-        <h1> Safes </h1>
-        {isSafesLoaing && <p> safes are loading </p>}
-        {safesData && safesData.map((safeItem) => <p> {safeItem.address} </p>)}
-      </div>
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Image
@@ -56,7 +33,17 @@ export default function Home() {
           />
           <SafeSelector safeAddress={selectedSafe} onChange={setSelectedSafe} />
         </div>
-
+        {isLoading && <p> Loading transfers... </p>}
+        {data && (
+          <div>
+            <h1> Transfers from tRPC</h1>
+            <p> {data.pagination.totalItems} </p>
+            {
+              data.results.map( (transfer: Transfer) => <p> {transfer.safeAddress} </p>)
+            }
+          </div>
+        )}
+        {safesData && safesData.map((safeItem: SafeItem) => <p> {safeItem.address} </p>)}
         <TransactionTable
           transfers={data?.results || []}
           safeAddress={selectedSafe}
