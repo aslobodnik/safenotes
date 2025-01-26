@@ -1,4 +1,8 @@
+import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit'
 import Link from 'next/link'
+import { useAccount, useEnsAvatar, useEnsName } from 'wagmi'
+
+import { truncateAddress } from '@/lib/utils'
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,19 +19,53 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Right side - Buttons */}
         <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <button className="text-brand hover:bg-brand/10 rounded-md px-4 py-2">
-              Admin
-            </button>
+          <Link
+            href="/admin"
+            className="text-brand hover:bg-brand/10 rounded-md px-4 py-2"
+          >
+            Admin
           </Link>
-          <button className="bg-brand hover:bg-brand/90 rounded-md px-4 py-2 text-white">
-            Connect
-          </button>
+          <ConnectButton />
         </div>
       </nav>
 
       {/* Main Content */}
       <main className="p-8">{children}</main>
     </div>
+  )
+}
+
+function ConnectButton() {
+  const { address } = useAccount()
+  const { data: name } = useEnsName({ address })
+  const { data: avatar } = useEnsAvatar({ name: name ?? undefined })
+
+  const { openConnectModal } = useConnectModal()
+  const { openAccountModal } = useAccountModal()
+
+  if (address) {
+    return (
+      <div
+        className="bg-brand hover:bg-brand/90 flex items-center gap-2 rounded-md py-0.5 pl-0.5 pr-2 text-white hover:cursor-pointer"
+        onClick={openAccountModal}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={avatar ?? '/img/fallback-avatar.svg'}
+          alt="Avatar"
+          className="h-9 w-9 rounded-md"
+        />
+        <span>{name ?? truncateAddress(address)}</span>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      className="bg-brand hover:bg-brand/90 rounded-md px-4 py-2 text-white"
+      onClick={openConnectModal}
+    >
+      Connect
+    </button>
   )
 }

@@ -2,6 +2,7 @@ import { format } from 'date-fns'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { truncateAddress } from '@/lib/utils'
 import { publicClient } from '@/lib/web3'
 import { TransactionTableProps } from '@/types/transfers'
 
@@ -97,7 +98,7 @@ export default function TransactionTable({
     if (ensName) {
       return ensName
     }
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
+    return truncateAddress(address)
   }
 
   if (isLoading) {
