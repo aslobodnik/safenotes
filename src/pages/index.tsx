@@ -5,9 +5,9 @@ import { useState } from 'react'
 import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import TransactionTable from '@/components/TransactionTable'
+import { SafeItem, Transfer } from '@/db/schema'
 import { TransferResponse } from '@/types/transfers'
 import { trpcNext } from '@/utils/trpc'
-import { SafeItem, Transfer } from '@/db/schema'
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
@@ -19,7 +19,7 @@ export default function Home() {
     includeRemoved: false,
   })
   const { data: safesData } = trpcNext.safes.getSafes.useQuery()
-  
+
   return (
     <Layout>
       <div className="space-y-4">
@@ -38,12 +38,12 @@ export default function Home() {
           <div>
             <h1> Transfers from tRPC</h1>
             <p> {data.pagination.totalItems} </p>
-            {
-              data.results.map( (transfer: Transfer) => <p> {transfer.safeAddress} </p>)
-            }
+            {data.results.map((transfer) => (
+              <p> {transfer.safe} </p>
+            ))}
           </div>
         )}
-        {safesData && safesData.map((safeItem: SafeItem) => <p> {safeItem.address} </p>)}
+        {/* {safesData && safesData.map((safeItem: SafeItem) => <p> {safeItem.address} </p>)} */}
         <TransactionTable
           transfers={data?.results || []}
           safeAddress={selectedSafe}

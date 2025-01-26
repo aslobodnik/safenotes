@@ -9,7 +9,7 @@ import { WagmiProvider } from 'wagmi'
 
 import { wagmiConfig } from '@/lib/web3'
 import '@/styles/globals.css'
-import { trpc } from '@/utils/trpc'
+import { trpcNext } from '@/utils/trpc'
 
 const queryClient = new QueryClient()
 
@@ -33,4 +33,4 @@ function App({ Component, pageProps }: Props) {
   )
 }
 
-export default trpc.withTRPC(App)
+export default trpcNext.withTRPC(App)
