@@ -8,6 +8,7 @@ import { AppProps } from 'next/app'
 import { WagmiProvider } from 'wagmi'
 
 import { wagmiConfig } from '@/lib/web3'
+import '@/styles/globals.css'
 
 const queryClient = new QueryClient()
 
