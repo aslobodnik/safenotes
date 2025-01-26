@@ -2,6 +2,7 @@ import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit'
 import Link from 'next/link'
 import { useAccount, useEnsAvatar, useEnsName } from 'wagmi'
 
+import { useIsMounted } from '@/hooks/useIsMounted'
 import { truncateAddress } from '@/lib/utils'
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function ConnectButton() {
+  const isMounted = useIsMounted()
   const { address } = useAccount()
   const { data: name } = useEnsName({ address })
   const { data: avatar } = useEnsAvatar({ name: name ?? undefined })
@@ -43,7 +45,7 @@ function ConnectButton() {
   const { openConnectModal } = useConnectModal()
   const { openAccountModal } = useAccountModal()
 
-  if (address) {
+  if (address && isMounted) {
     return (
       <div
         className="bg-brand hover:bg-brand/90 flex items-center gap-2 rounded-md py-0.5 pl-0.5 pr-2 text-white hover:cursor-pointer"
