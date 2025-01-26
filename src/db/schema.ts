@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations, InferSelectModel } from 'drizzle-orm';
 import {
   pgTable,
   text,
@@ -18,12 +18,15 @@ export const categories = pgTable('categories', {
   name: text('name').notNull().unique(),
 });
 
+export type CategoryItem = InferSelectModel<typeof categories>;
+
 export const safes = pgTable('safes', {
   address: text('address').primaryKey(),
   removed: boolean('removed').default(false),
   removedAt: timestamp('removed_at'),
 });
 
+export type SafeItem = InferSelectModel<typeof safes>;
 export const transfers = pgTable('transfers', {
   transferId: text('transfer_id').primaryKey(),
   safeAddress: text('safe_address')
@@ -45,6 +48,8 @@ export const transfers = pgTable('transfers', {
     .defaultNow(),
 });
 
+export type TransferItem = InferSelectModel<typeof transfers>;
+
 export const transferCategories = pgTable(
   'transfer_categories',
   {
@@ -55,6 +60,8 @@ export const transferCategories = pgTable(
     pk: primaryKey(table.transferId, table.categoryId),
   }),
 );
+
+export type TransferCategoryItem = InferSelectModel<typeof transferCategories>;
 
 // Define relationships
 export const transfersRelations = relations(transfers, ({ many }) => ({
@@ -68,6 +75,8 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 // Types for better type safety
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
+
+
 
 export type Safe = typeof safes.$inferSelect;
 export type NewSafe = typeof safes.$inferInsert;

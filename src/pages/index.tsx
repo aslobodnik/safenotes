@@ -4,9 +4,11 @@ import SafeSelector from "@/components/SafeSelector";
 import TransactionTable from "@/components/TransactionTable";
 import { Layout } from "@/components/Layout";
 import { trpc } from "@/utils/trpc";
+import { SafeItem } from '@/db/schema';
 
 export default function Home() {
   const { data, isLoading, error } = trpc.hello.useQuery({ text: "client" });
+  const { data: safes, isLoading: safesLoading, error: safesError } = trpc.getSafes.useQuery();
 
   const [selectedSafe, setSelectedSafe] = useState("");
   const [transfers, setTransfers] = useState<Transfer[]>([]);
@@ -44,6 +46,10 @@ export default function Home() {
       {data && <p>{data.greeting}</p>}
       {isLoading && <p>Loading...</p>}
       {error && <p>Error: {error.message}</p>}
+      {safes && <p>{safes.length}</p>}
+      {safes && safes.map((safe: SafeItem) => <p key={safe.address}>{safe.address}</p>)}
+      {safesLoading && <p>Loading...</p>}
+      {safesError && <p>Error: {safesError.message}</p>}
       <div className="space-y-4">
         <SafeSelector value={selectedSafe} onChange={setSelectedSafe} />
         <TransactionTable
