@@ -1,20 +1,12 @@
-import { eq } from 'drizzle-orm'
+// import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { safes } from '@/db/schema'
+// import { safes } from '@/db/schema'
+import { safeRouter } from '@/server/routers/safe-router'
 import { publicProcedure, router } from '@/server/trpc'
 
 export const appRouter = router({
-  // Example procedure using db
-  getSafes: publicProcedure.query(async ({ ctx }) => {
-    const safesList = await ctx.db
-      .select()
-      .from(safes)
-      .where(eq(safes.removed, false))
-
-    return safesList
-  }),
-
+  safes: safeRouter,
   hello: publicProcedure
     .input(
       z.object({

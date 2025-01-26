@@ -6,8 +6,15 @@ import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import TransactionTable from '@/components/TransactionTable'
 import { TransferResponse } from '@/types/transfers'
+import { trpc } from '@/utils/trpc'
 
 export default function Home() {
+  const {
+    data: safesData,
+    isLoading: isSafesLoaing,
+    isError: isSafesError,
+  } = trpc.safes.getSafes.useQuery()
+
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -33,6 +40,11 @@ export default function Home() {
 
   return (
     <Layout>
+      <div>
+        <h1> Safes </h1>
+        {isSafesLoaing && <p> safes are loading </p>}
+        {safesData && safesData.map((safeItem) => <p> {safeItem.address} </p>)}
+      </div>
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Image
