@@ -39,7 +39,11 @@ export function getAuthOptions(req: IncomingMessage): NextAuthOptions {
             return null
           }
 
+          console.log('nextAuthUrl', nextAuthUrl)
+
           const nextAuthHost = new URL(nextAuthUrl).host
+          console.log('nextAuthHost', nextAuthHost)
+          console.log('siweMessage.domain', siweMessage.domain)
           if (siweMessage.domain !== nextAuthHost) {
             return null
           }

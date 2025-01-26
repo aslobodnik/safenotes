@@ -1,5 +1,4 @@
 import { format } from 'date-fns'
-import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { truncateAddress } from '@/lib/utils'
@@ -102,7 +101,50 @@ export default function TransactionTable({
   }
 
   if (isLoading) {
-    return <Loader2 className="animate-spin" />
+    return (
+      <div>
+        <table className="min-w-full">
+          <thead className="border-b">
+            <tr>
+              <th className="p-4 text-left">Safe</th>
+              <th className="p-4 text-left">Action</th>
+              <th className="p-4 text-left">Address</th>
+              <th className="p-4 text-right">Amount</th>
+              <th className="p-4 text-left">Category</th>
+              <th className="p-4 text-left">Description</th>
+              <th className="p-4 text-left">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, i) => (
+              <tr key={i} className="animate-pulse border-b">
+                <td className="p-4">
+                  <div className="h-4 w-24 rounded bg-gray-200"></div>
+                </td>
+                <td className="p-4">
+                  <div className="h-4 w-4 rounded bg-gray-200"></div>
+                </td>
+                <td className="p-4">
+                  <div className="h-4 w-32 rounded bg-gray-200"></div>
+                </td>
+                <td className="p-4">
+                  <div className="ml-auto h-4 w-20 rounded bg-gray-200"></div>
+                </td>
+                <td className="p-4">
+                  <div className="h-4 w-16 rounded bg-gray-200"></div>
+                </td>
+                <td className="p-4">
+                  <div className="h-4 w-40 rounded bg-gray-200"></div>
+                </td>
+                <td className="p-4">
+                  <div className="h-4 w-24 rounded bg-gray-200"></div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
   }
 
   if (!transfers || transfers.length === 0) {
