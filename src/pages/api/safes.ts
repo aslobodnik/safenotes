@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { isAddress } from 'viem'
 
-import db from '@/db/index'
+import { db } from '@/db'
 import { safes } from '@/db/schema'
 import { verifySession } from '@/lib/auth'
 
@@ -34,11 +34,20 @@ export default async function handler(
       }
 
       // Insert new safe using Drizzle
-      await db.insert(safes).values({
-        address,
-        removed: false,
-        removedAt: null,
-      })
+      await db
+        .insert(safes)
+        .values({
+          address,
+          removed: false,
+          removedAt: null,
+        })
+        .onConflictDoUpdate({
+          target: safes.address,
+          set: {
+            removed: false,
+            removedAt: null,
+          },
+        })
 
       return res.status(201).json({ message: 'Safe added successfully' })
     } catch (error) {
