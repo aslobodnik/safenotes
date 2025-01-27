@@ -1,8 +1,14 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactStrictMode: true,
+  images: {
+    domains: [
+      'assets.coingecko.com',
+      'safe-transaction-assets.safe.global',
+      'assets.smold.app',
+    ],
+  },
 }
 
 export default nextConfig

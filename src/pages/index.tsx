@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 
 import { Layout } from '@/components/Layout'
+import SafeBalances from '@/components/SafeBalances'
 import SafeSelector from '@/components/SafeSelector'
 import SafeSigners from '@/components/SafeSigners'
 import TransactionTable from '@/components/TransactionTable'
@@ -29,8 +30,6 @@ export default function Home() {
     },
     enabled: !!selectedSafe,
   })
-
-  console.log('signersData', signersData)
 
   const { data, isLoading } = useQuery<TransferResponse>({
     queryKey: ['transfers', currentPage, selectedSafe],
@@ -80,6 +79,7 @@ export default function Home() {
               onChange={setSelectedSafe}
             />
             <SafeSigners signersData={signersData} />
+            <SafeBalances safeAddress={selectedSafe} />
           </div>
         </div>
 
