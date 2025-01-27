@@ -7,10 +7,7 @@ import SafeBalances from '@/components/SafeBalances'
 import SafeSelector from '@/components/SafeSelector'
 import SafeSigners from '@/components/SafeSigners'
 import TransactionTable from '@/components/TransactionTable'
-import { TransferResponse } from '@/types/transfers'
-import { publicClient } from '@/lib/web3'
 import { api } from '@/utils/trpc'
-
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
@@ -38,26 +35,6 @@ export default function Home() {
       return await response.json()
     },
     enabled: !!selectedSafe,
-  })
-
-  const { data, isLoading } = useQuery<TransferResponse>({
-    queryKey: ['transfers', currentPage, selectedSafe],
-    queryFn: async () => {
-      const url = new URL('/api/transfers', window.location.origin)
-      url.searchParams.set('page', currentPage.toString())
-
-      if (selectedSafe) {
-        url.searchParams.set('safe', selectedSafe)
-      }
-
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch transfers')
-      }
-
-      return await response.json()
-    },
   })
 
   const { data: categories } = useQuery({
@@ -92,9 +69,9 @@ export default function Home() {
           </div>
         </div>
         <TransactionTable
-          transfers={data?.results || []}
+          transfers={transfers?.results || []}
           safeAddress={selectedSafe}
-          pagination={data?.pagination || null}
+          pagination={transfers?.pagination || null}
           onPageChange={setCurrentPage}
           isLoading={isLoading}
           categories={categories || []}
