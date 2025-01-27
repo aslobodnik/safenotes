@@ -53,8 +53,29 @@ export default function TransactionTable({
   pagination,
   onPageChange,
   isLoading,
+  categories,
 }: TransactionTableProps) {
   const [ensNames, setEnsNames] = useState<AddressMap>({})
+  const [localCategories, setLocalCategories] = useState<{
+    [key: string]: string
+  }>({})
+
+  // Initialize localCategories with existing categories
+  useEffect(() => {
+    if (transfers) {
+      const initialCategories = transfers.reduce(
+        (acc, transfer) => {
+          if (transfer.categoryId) {
+            acc[transfer.transferId] = transfer.categoryId
+          }
+          return acc
+        },
+        {} as { [key: string]: string }
+      )
+
+      setLocalCategories(initialCategories)
+    }
+  }, [transfers])
 
   // Collect unique addresses from transfers
   useEffect(() => {
@@ -98,6 +119,16 @@ export default function TransactionTable({
       return ensName
     }
     return truncateAddress(address)
+  }
+
+  const handleCategoryChange = async (
+    transferId: string,
+    categoryId: string
+  ) => {
+    setLocalCategories((prev) => ({
+      ...prev,
+      [transferId]: categoryId,
+    }))
   }
 
   if (isLoading) {
@@ -212,7 +243,26 @@ export default function TransactionTable({
                         maximumFractionDigits: 0,
                       })} ${transfer.tokenInfo.symbol}`}
                 </td>
-                <td className="p-4">{transfer.category || '-'}</td>
+                <td className="whitespace-nowrap p-4">
+                  <select
+                    className="rounded border p-1"
+                    value={
+                      localCategories[transfer.transferId] ||
+                      transfer.categoryId ||
+                      ''
+                    }
+                    onChange={(e) =>
+                      handleCategoryChange(transfer.transferId, e.target.value)
+                    }
+                  >
+                    <option value="">Select category</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
                 <td className="p-4">{transfer.description || '-'}</td>
                 <td className="p-4">
                   {format(new Date(transfer.executionDate), 'd MMM yyyy')}

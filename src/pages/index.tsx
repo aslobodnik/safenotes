@@ -52,6 +52,17 @@ export default function Home() {
     },
   })
 
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await fetch('/api/categories')
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories')
+      }
+      return await response.json()
+    },
+  })
+
   return (
     <Layout>
       <div className="space-y-4">
@@ -78,6 +89,7 @@ export default function Home() {
           pagination={data?.pagination || null}
           onPageChange={setCurrentPage}
           isLoading={isLoading}
+          categories={categories || []}
         />
       </div>
     </Layout>
