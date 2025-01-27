@@ -1,0 +1,84 @@
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+
+import { safes } from '@/db/schema'
+import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
+import type { Transfer, TransferResponse } from '@/types/transfers'
+
+const ITEMS_PER_PAGE = 20
+
+export const transfersRouter = createTRPCRouter({
+  getTransfers: publicProcedure
+    .input(
+      z.object({
+        page: z.number().default(1),
+        safeAddress: z.string().nullable().optional(),
+        includeRemoved: z.boolean().default(false),
+      })
+    )
+    .query(async ({ ctx, input }): Promise<TransferResponse> => {
+      const { page, safeAddress, includeRemoved } = input
+
+      // Get safes using Drizzle
+      const safesList = safeAddress
+        ? await ctx.db
+            .select()
+            .from(safes)
+            .where(eq(safes.address, safeAddress))
+        : includeRemoved
+          ? await ctx.db.select().from(safes)
+          : await ctx.db.select().from(safes).where(eq(safes.removed, false))
+
+      let allTransfers: Transfer[] = []
+      for (const safe of safesList) {
+        const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${safe.address}/transfers/?limit=1000`
+        const response = await fetch(apiUrl)
+
+        if (!response.ok) {
+          console.error(`Failed to fetch transfers for safe ${safe.address}`)
+          continue
+        }
+
+        const data = await response.json()
+
+        const trustedTransfers = data.results
+          .filter((transfer: Transfer) => {
+            if (!transfer.tokenInfo) return true
+            return transfer.tokenInfo.trusted === true
+          })
+          .map((transfer: Transfer) => ({
+            ...transfer,
+            safe: safe.address,
+          }))
+
+        allTransfers = [...allTransfers, ...trustedTransfers]
+      }
+
+      // Sort by execution date, most recent first
+      allTransfers.sort(
+        (a, b) =>
+          new Date(b.executionDate).getTime() -
+          new Date(a.executionDate).getTime()
+      )
+
+      const totalItems = allTransfers.length
+      const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+      const startIndex = (page - 1) * ITEMS_PER_PAGE
+      const paginatedTransfers = allTransfers.slice(
+        startIndex,
+        startIndex + ITEMS_PER_PAGE
+      )
+
+      return {
+        results: paginatedTransfers,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems,
+          itemsPerPage: ITEMS_PER_PAGE,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      }
+    }),
+})

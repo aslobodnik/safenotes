@@ -1,164 +1,86 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Layout } from '@/components/Layout'
-
-type Category = {
-  id: string
-  name: string
-}
-
-type Safe = {
-  address: string
-}
+import { SafeListItem } from '@/components/SafeListItem'
+import { api } from '@/utils/trpc'
 
 export default function Admin() {
   const [newSafe, setNewSafe] = useState('')
   const [newCategory, setNewCategory] = useState('')
-  const [categories, setCategories] = useState<Category[]>([])
-  const [safes, setSafes] = useState<Safe[]>([])
 
-  useEffect(() => {
-    // Fetch categories
-    const fetchCategories = async () => {
-      const response = await fetch('/api/categories')
-      if (response.ok) {
-        const data = await response.json()
-        setCategories(data)
-      }
-    }
+  const utils = api.useUtils()
 
-    // Fetch safes
-    const fetchSafes = async () => {
-      const response = await fetch('/api/safes')
-      if (response.ok) {
-        const data = await response.json()
-        setSafes(data)
-      }
-    }
+  // Queries
+  const { data: categories } = api.categories.getAll.useQuery()
+  const { data: safes } = api.safes.getAllSafes.useQuery()
 
-    fetchCategories()
-    fetchSafes()
-  }, [])
+  // Mutations
+  const { mutate: createCategory } = api.categories.create.useMutation({
+    onSuccess: () => {
+      setNewCategory('')
+      void utils.categories.getAll.invalidate()
+    },
+    onError: (error) => {
+      alert(error.message)
+    },
+  })
+
+  const { mutate: deleteCategory } = api.categories.delete.useMutation({
+    onSuccess: () => {
+      void utils.categories.getAll.invalidate()
+    },
+    onError: (error) => {
+      alert(error.message)
+    },
+  })
+
+  const { mutate: createSafe } = api.safes.create.useMutation({
+    onSuccess: () => {
+      setNewSafe('')
+      void utils.safes.getAllSafes.invalidate()
+    },
+    onError: (error) => {
+      alert(error.message)
+    },
+  })
+
+  const { mutate: deleteSafe } = api.safes.delete.useMutation({
+    onSuccess: () => {
+      void utils.safes.getAllSafes.invalidate()
+    },
+    onError: (error) => {
+      alert(error.message)
+    },
+  })
 
   const handleAddSafe = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate address format
     if (!newSafe.match(/^0x[a-fA-F0-9]{40}$/)) {
       alert('Invalid safe address format')
       return
     }
 
-    try {
-      const response = await fetch('/api/safes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ address: newSafe }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to add safe')
-      }
-
-      // Refresh the safes list
-      const updatedSafesResponse = await fetch('/api/safes')
-      if (updatedSafesResponse.ok) {
-        const data = await updatedSafesResponse.json()
-        setSafes(data)
-      }
-
-      setNewSafe('')
-    } catch (error) {
-      console.error('Error adding safe:', error)
-      alert('Failed to add safe')
-    }
+    createSafe({ address: newSafe })
   }
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Basic validation
     if (!newCategory.trim()) {
       alert('Category name cannot be empty')
       return
     }
 
-    try {
-      const response = await fetch('/api/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newCategory.trim() }),
-      })
-
-      if (!response.ok) {
-        const error = await response.text()
-        throw new Error(error || 'Failed to add category')
-      }
-
-      // Refresh the categories list
-      const updatedCategoriesResponse = await fetch('/api/categories')
-      if (updatedCategoriesResponse.ok) {
-        const data = await updatedCategoriesResponse.json()
-        setCategories(data)
-      }
-
-      setNewCategory('')
-    } catch (error) {
-      console.error('Error adding category:', error)
-      alert(error instanceof Error ? error.message : 'Failed to add category')
-    }
+    createCategory({ name: newCategory })
   }
 
-  const handleDeleteSafe = async (address: string) => {
-    try {
-      const response = await fetch(`/api/safes/${address}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete safe')
-      }
-
-      // Update the local state to remove the deleted safe
-      setSafes(safes.filter((safe) => safe.address !== address))
-    } catch (error) {
-      console.error('Error deleting safe:', error)
-      alert('Failed to delete safe')
-    }
+  const handleDeleteSafe = (address: string) => {
+    deleteSafe({ address })
   }
 
-  const handleDeleteCategory = async (id: string) => {
-    try {
-      const response = await fetch('/api/categories', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
-      })
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json()
-          throw new Error(data.error || 'Failed to delete category')
-        } else {
-          throw new Error('Failed to delete category')
-        }
-      }
-
-      // Update the local state to remove the deleted category
-      setCategories(categories.filter((category) => category.id !== id))
-    } catch (error) {
-      console.error('Error deleting category:', error)
-      alert(
-        error instanceof Error ? error.message : 'Failed to delete category'
-      )
-    }
+  const handleDeleteCategory = (id: string) => {
+    deleteCategory({ id })
   }
 
   return (
@@ -201,22 +123,17 @@ export default function Admin() {
               <div className="rounded-lg border p-6">
                 <h2 className="mb-4 text-xl font-semibold">Current Safes</h2>
                 <div className="space-y-2">
-                  {safes.length === 0 ? (
+                  {!safes ? (
+                    <p className="text-gray-500">Loading safes...</p>
+                  ) : safes.length === 0 ? (
                     <p className="text-gray-500">No safes added yet</p>
                   ) : (
                     safes.map((safe) => (
-                      <div
+                      <SafeListItem
                         key={safe.address}
-                        className="flex items-center justify-between rounded border p-2"
-                      >
-                        <span className="font-mono">{safe.address}</span>
-                        <button
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => handleDeleteSafe(safe.address)}
-                        >
-                          ×
-                        </button>
-                      </div>
+                        safe={safe}
+                        onDelete={handleDeleteSafe}
+                      />
                     ))
                   )}
                 </div>
@@ -257,7 +174,9 @@ export default function Admin() {
                   Current Categories
                 </h2>
                 <div className="space-y-2">
-                  {categories.length === 0 ? (
+                  {!categories ? (
+                    <p className="text-gray-500">Loading categories...</p>
+                  ) : categories.length === 0 ? (
                     <p className="text-gray-500">No categories added yet</p>
                   ) : (
                     categories.map((category) => (

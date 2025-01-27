@@ -7,11 +7,17 @@ import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import TransactionTable from '@/components/TransactionTable'
 import { publicClient } from '@/lib/web3'
-import { TransferResponse } from '@/types/transfers'
+import { api } from '@/utils/trpc'
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+
+  const { data: transfers, isLoading } = api.transfers.getTransfers.useQuery({
+    page: currentPage,
+    safeAddress: selectedSafe,
+    includeRemoved: false,
+  })
 
   const { data: signersData } = useQuery({
     queryKey: ['safe-signers', selectedSafe],
@@ -33,26 +39,6 @@ export default function Home() {
 
   console.log('signersData', signersData)
 
-  const { data, isLoading } = useQuery<TransferResponse>({
-    queryKey: ['transfers', currentPage, selectedSafe],
-    queryFn: async () => {
-      const url = new URL('/api/transfers', window.location.origin)
-      url.searchParams.set('page', currentPage.toString())
-
-      if (selectedSafe) {
-        url.searchParams.set('safe', selectedSafe)
-      }
-
-      const response = await fetch(url)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch transfers')
-      }
-
-      return await response.json()
-    },
-  })
-
   return (
     <Layout>
       <div className="space-y-4">
@@ -72,14 +58,18 @@ export default function Home() {
             <SafeSigners signersData={signersData} />
           </div>
         </div>
-
-        <TransactionTable
-          transfers={data?.results || []}
-          safeAddress={selectedSafe}
-          pagination={data?.pagination || null}
-          onPageChange={setCurrentPage}
-          isLoading={isLoading}
-        />
+        <div>
+          {isLoading && <p>Loading...</p>}
+          {transfers && (
+            <TransactionTable
+              transfers={transfers.results || []}
+              safeAddress={selectedSafe}
+              pagination={transfers.pagination || null}
+              onPageChange={setCurrentPage}
+              isLoading={isLoading}
+            />
+          )}
+        </div>
       </div>
     </Layout>
   )

@@ -46,9 +46,3 @@ export interface TransactionTableProps {
   onPageChange: (page: number) => void
   isLoading: boolean
 }
-
-export interface Safe {
-  address: string
-  removed: boolean
-  removed_at: string | null
-}
