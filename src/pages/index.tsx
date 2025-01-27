@@ -51,23 +51,30 @@ export default function Home() {
   return (
     <Layout>
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Image
-            src="/ens-logo.svg"
-            alt="ENS Logo"
-            width={120}
-            height={120}
-            priority
-          />
-          <div className="flex items-center gap-4">
-            <SafeSelector
-              safeAddress={selectedSafe}
-              onChange={setSelectedSafe}
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div className="flex flex-col gap-4">
+            <Image
+              src="/img/logo-filled.svg"
+              alt="ENS Logo"
+              width={128}
+              height={128}
+              className="w-28 -rotate-3 rounded-3xl border-4 border-white shadow-[0_0_22px_0_#00000029] md:w-32"
             />
+
+            <div className="flex items-center gap-4">
+              <SafeSelector
+                safeAddress={selectedSafe}
+                onChange={setSelectedSafe}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:gap-12">
             <SafeSigners signersData={signersData} />
             <SafeBalances safeAddress={selectedSafe} />
           </div>
         </div>
+
         <TransactionTable
           transfers={transfers?.results || []}
           safeAddress={selectedSafe}

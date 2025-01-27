@@ -40,10 +40,9 @@ export default function SafeSigners({
 
   return (
     <div className="text-sm">
-      <div className="mb-4 text-2xl font-bold">
-        {signersData.threshold}/{signersData.owners.length}
+      <div className="mb-1 font-semibold">
+        Signers ({signersData.threshold}/{signersData.owners.length}):
       </div>
-      <div className="mb-1 font-medium">Signers:</div>
       <ul className="space-y-1">
         {isLoading ? (
           <>

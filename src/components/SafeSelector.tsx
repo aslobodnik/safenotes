@@ -12,7 +12,7 @@ export default function SafeSelector({
   const { data: safes, isLoading } = api.safes.getAllSafesWithEns.useQuery()
 
   return (
-    <div className="mb-4">
+    <div>
       <select
         value={safeAddress || ''}
         onChange={(e) => onChange(e.target.value)}

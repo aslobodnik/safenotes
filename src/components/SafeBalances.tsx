@@ -42,7 +42,7 @@ export default function SafeBalances({
 
   return (
     <div className="text-sm">
-      <div className="mb-1 font-medium">Balances:</div>
+      <div className="mb-1 font-semibold">Balances:</div>
       <ul className="space-y-2">
         {isLoading ? (
           <>
