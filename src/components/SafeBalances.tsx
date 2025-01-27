@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import Image from 'next/image'
 
 interface Token {
   name: string
@@ -57,19 +56,17 @@ export default function SafeBalances({
               key={balance.tokenAddress || 'eth'}
               className="flex items-center gap-2"
             >
-              {balance.token?.logoUri && (
-                <Image
-                  src={balance.token.logoUri}
-                  alt={balance.token.symbol}
-                  width={20}
-                  height={20}
-                  className="rounded-full"
-                />
-              )}
-              <span className="font-mono text-gray-600">
-                {formatBalance(balance.balance, balance.token?.decimals || 18)}{' '}
-                {balance.token?.symbol || 'ETH'}
-              </span>
+              {' '}
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-gray-600">
+                  {formatBalance(
+                    balance.balance,
+                    balance.token?.decimals || 18,
+                    balance.token?.symbol || 'ETH'
+                  )}{' '}
+                  {balance.token?.symbol || 'ETH'}
+                </span>
+              </div>
             </li>
           ))
         )}
@@ -78,9 +75,13 @@ export default function SafeBalances({
   )
 }
 
-function formatBalance(balance: string, decimals: number): string {
+function formatBalance(
+  balance: string,
+  decimals: number,
+  symbol: string | null
+): string {
   const value = Number(balance) / Math.pow(10, decimals)
-  const isEthLike = decimals === 18
+  const isEthLike = symbol === 'ETH' || symbol === 'WETH'
 
   return value.toLocaleString(undefined, {
     minimumFractionDigits: isEthLike ? 1 : 0,
