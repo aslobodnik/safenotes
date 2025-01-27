@@ -13,7 +13,7 @@ export default function SafeSigners({
 }: {
   signersData: SafeInfo | null
 }) {
-  const { data: safesWithEns } = useQuery({
+  const { data: safesWithEns, isLoading } = useQuery({
     queryKey: ['safe-signers-ens', signersData?.owners],
     queryFn: async () => {
       if (!signersData) return []
@@ -45,11 +45,21 @@ export default function SafeSigners({
       </div>
       <div className="mb-1 font-medium">Signers:</div>
       <ul className="space-y-1">
-        {safesWithEns?.map(({ address, name }) => (
-          <li key={address} className="font-mono text-gray-600">
-            {name ? `${name}` : `${address.slice(0, 6)}...${address.slice(-4)}`}
-          </li>
-        ))}
+        {isLoading ? (
+          <>
+            <li className="h-6 w-32 animate-pulse rounded bg-gray-200"></li>
+            <li className="h-6 w-32 animate-pulse rounded bg-gray-200"></li>
+            <li className="h-6 w-32 animate-pulse rounded bg-gray-200"></li>
+          </>
+        ) : (
+          safesWithEns?.map(({ address, name }) => (
+            <li key={address} className="font-mono text-gray-600">
+              {name
+                ? `${name}`
+                : `${address.slice(0, 6)}...${address.slice(-4)}`}
+            </li>
+          ))
+        )}
       </ul>
     </div>
   )
