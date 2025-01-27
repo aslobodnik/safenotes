@@ -23,6 +23,7 @@ export interface Transfer {
   safe: string // Adding safe address to track which safe it belongs to
   category?: string
   description?: string
+  categoryId?: string
 }
 
 export interface PaginationInfo {
@@ -45,4 +46,5 @@ export interface TransactionTableProps {
   pagination: PaginationInfo | null
   onPageChange: (page: number) => void
   isLoading: boolean
+  categories: { id: string; name: string }[]
 }

@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
 import { useState } from 'react'
-import { Address } from 'viem'
 
 import { Layout } from '@/components/Layout'
+import SafeBalances from '@/components/SafeBalances'
 import SafeSelector from '@/components/SafeSelector'
+import SafeSigners from '@/components/SafeSigners'
 import TransactionTable from '@/components/TransactionTable'
-import { publicClient } from '@/lib/web3'
 import { api } from '@/utils/trpc'
 
 export default function Home() {
@@ -37,7 +37,16 @@ export default function Home() {
     enabled: !!selectedSafe,
   })
 
-  console.log('signersData', signersData)
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await fetch('/api/categories')
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories')
+      }
+      return await response.json()
+    },
+  })
 
   return (
     <Layout>
@@ -56,69 +65,18 @@ export default function Home() {
               onChange={setSelectedSafe}
             />
             <SafeSigners signersData={signersData} />
+            <SafeBalances safeAddress={selectedSafe} />
           </div>
         </div>
-        <div>
-          {isLoading && <p>Loading...</p>}
-          {transfers && (
-            <TransactionTable
-              transfers={transfers.results || []}
-              safeAddress={selectedSafe}
-              pagination={transfers.pagination || null}
-              onPageChange={setCurrentPage}
-              isLoading={isLoading}
-            />
-          )}
-        </div>
+        <TransactionTable
+          transfers={transfers?.results || []}
+          safeAddress={selectedSafe}
+          pagination={transfers?.pagination || null}
+          onPageChange={setCurrentPage}
+          isLoading={isLoading}
+          categories={categories || []}
+        />
       </div>
     </Layout>
-  )
-}
-
-interface SafeInfo {
-  owners: string[]
-  threshold: number
-}
-
-function SafeSigners({ signersData }: { signersData: SafeInfo | null }) {
-  const { data: safesWithEns } = useQuery({
-    queryKey: ['safe-signers-ens', signersData?.owners],
-    queryFn: async () => {
-      if (!signersData) return []
-
-      const names = await Promise.all(
-        signersData.owners.map(async (address: string) => {
-          const name = await publicClient.getEnsName({
-            address: address as Address,
-          })
-
-          return {
-            address,
-            name,
-          }
-        })
-      )
-
-      return names
-    },
-    enabled: !!signersData?.owners,
-  })
-
-  if (!signersData) return null
-
-  return (
-    <div className="text-sm">
-      <div className="mb-4 text-2xl font-bold">
-        {signersData.threshold}/{signersData.owners.length}
-      </div>
-      <div className="mb-1 font-medium">Signers:</div>
-      <ul className="space-y-1">
-        {safesWithEns?.map(({ address, name }) => (
-          <li key={address} className="font-mono text-gray-600">
-            {name ? `${name}` : `${address.slice(0, 6)}...${address.slice(-4)}`}
-          </li>
-        ))}
-      </ul>
-    </div>
   )
 }
