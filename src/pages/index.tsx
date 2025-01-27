@@ -64,7 +64,7 @@ export default function Home() {
             height={120}
             priority
           />
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
             <SafeSelector
               safeAddress={selectedSafe}
               onChange={setSelectedSafe}
@@ -125,9 +125,7 @@ function SafeSigners({ signersData }: { signersData: SafeInfo | null }) {
       <ul className="space-y-1">
         {safesWithEns?.map(({ address, name }) => (
           <li key={address} className="font-mono text-gray-600">
-            {name
-              ? `${name} (${address})`
-              : `${address.slice(0, 6)}...${address.slice(-4)}`}
+            {name ? `${name}` : `${address.slice(0, 6)}...${address.slice(-4)}`}
           </li>
         ))}
       </ul>
