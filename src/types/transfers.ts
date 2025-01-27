@@ -48,9 +48,3 @@ export interface TransactionTableProps {
   isLoading: boolean
   categories: { id: string; name: string }[]
 }
-
-export interface Safe {
-  address: string
-  removed: boolean
-  removed_at: string | null
-}

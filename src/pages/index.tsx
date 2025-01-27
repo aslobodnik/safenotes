@@ -8,10 +8,19 @@ import SafeSelector from '@/components/SafeSelector'
 import SafeSigners from '@/components/SafeSigners'
 import TransactionTable from '@/components/TransactionTable'
 import { TransferResponse } from '@/types/transfers'
+import { publicClient } from '@/lib/web3'
+import { api } from '@/utils/trpc'
+
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+
+  const { data: transfers, isLoading } = api.transfers.getTransfers.useQuery({
+    page: currentPage,
+    safeAddress: selectedSafe,
+    includeRemoved: false,
+  })
 
   const { data: signersData } = useQuery({
     queryKey: ['safe-signers', selectedSafe],
@@ -82,7 +91,6 @@ export default function Home() {
             <SafeBalances safeAddress={selectedSafe} />
           </div>
         </div>
-
         <TransactionTable
           transfers={data?.results || []}
           safeAddress={selectedSafe}
