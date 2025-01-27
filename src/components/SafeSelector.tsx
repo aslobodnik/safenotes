@@ -24,14 +24,13 @@ export default function SafeSelector({
             Loading safes...
           </option>
         )}
-        {safes &&
-          safes.map((safe) => (
-            <option key={safe.address} value={safe.address}>
-              {safe.name
-                ? safe.name
-                : `${safe.address.slice(0, 6)}...${safe.address.slice(-4)}`}
-            </option>
-          ))}
+        {safes?.map((safe) => (
+          <option key={safe.address} value={safe.address}>
+            {safe.name
+              ? safe.name
+              : `${safe.address.slice(0, 6)}...${safe.address.slice(-4)}`}
+          </option>
+        ))}
       </select>
     </div>
   )

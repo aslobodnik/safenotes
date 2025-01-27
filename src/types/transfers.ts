@@ -1,5 +1,3 @@
-import { SafeItem } from '@/db/schema'
-
 export interface TokenInfo {
   type: string
   address: string
@@ -47,14 +45,4 @@ export interface TransactionTableProps {
   pagination: PaginationInfo | null
   onPageChange: (page: number) => void
   isLoading: boolean
-}
-
-// export interface Safe {
-//   address: string
-//   removed: boolean
-//   removedAt: Date | null // Changed from removed_at to match schema
-// }
-
-export interface SafeWithEns extends SafeItem {
-  name: string | null
 }

@@ -5,33 +5,30 @@ import { z } from 'zod'
 import { safes } from '@/db/schema'
 import { publicClient } from '@/lib/web3'
 import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
-import type { SafeWithEns } from '@/types/transfers'
 
 export const safesRouter = createTRPCRouter({
   getAllSafes: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.select().from(safes)
   }),
 
-  getAllSafesWithEns: publicProcedure.query(
-    async ({ ctx }): Promise<SafeWithEns[]> => {
-      const safesList = await ctx.db.select().from(safes)
+  getAllSafesWithEns: publicProcedure.query(async ({ ctx }) => {
+    const safesList = await ctx.db.select().from(safes)
 
-      const safesWithEns = await Promise.all(
-        safesList.map(async (safe) => {
-          const name = await publicClient.getEnsName({
-            address: safe.address as Address,
-          })
-
-          return {
-            ...safe,
-            name,
-          }
+    const safesWithEns = await Promise.all(
+      safesList.map(async (safe) => {
+        const name = await publicClient.getEnsName({
+          address: safe.address as Address,
         })
-      )
 
-      return safesWithEns
-    }
-  ),
+        return {
+          ...safe,
+          name,
+        }
+      })
+    )
+
+    return safesWithEns
+  }),
 
   create: publicProcedure
     .input(
