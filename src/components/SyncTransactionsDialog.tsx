@@ -8,6 +8,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { api } from '@/utils/trpc'
 
 interface SyncStatus {
@@ -22,6 +29,9 @@ interface SyncStatus {
   }
 }
 
+const TRANSFER_LIMITS = [10, 50, 100, 200] as const
+type TransferLimit = (typeof TRANSFER_LIMITS)[number]
+
 export function SyncTransactionsDialog({
   isOpen,
   onClose,
@@ -30,6 +40,7 @@ export function SyncTransactionsDialog({
   onClose: () => void
 }) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({})
+  const [transferLimit, setTransferLimit] = useState<TransferLimit>(50)
   const { data: safes } = api.safes.getAllSafesWithEns.useQuery()
   const utils = api.useUtils()
 
@@ -68,11 +79,11 @@ export function SyncTransactionsDialog({
           existingTransfers.map((t) => t.transferId)
         )
 
-        // Fetch new transfers
+        // Fetch new transfers with selected limit
         const newTransfers =
           await utils.client.transfers.getTransfersPerWallet.query({
             safeAddress: safe.address,
-            limit: 100,
+            limit: transferLimit,
           })
 
         // Update total in progress
@@ -195,6 +206,26 @@ export function SyncTransactionsDialog({
           <DialogTitle>Sync Transactions</DialogTitle>
         </DialogHeader>
         <div className="p-6 pt-2">
+          <div className="mb-4 flex items-center justify-between">
+            <Select
+              value={transferLimit.toString()}
+              onValueChange={(value) =>
+                setTransferLimit(Number(value) as TransferLimit)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Transactions per wallet" />
+              </SelectTrigger>
+              <SelectContent>
+                {TRANSFER_LIMITS.map((limit) => (
+                  <SelectItem key={limit} value={limit.toString()}>
+                    {limit} transactions
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="max-h-[60vh] space-y-3 overflow-y-auto">
             {safes?.map((safe) => {
               const status = syncStatus[safe.address]
