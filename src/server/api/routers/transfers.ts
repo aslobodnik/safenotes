@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { safes } from '@/db/schema'
+import { safes, transfers } from '@/db/schema'
 import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
 import type { Transfer, TransferResponse } from '@/types/transfers'
 
@@ -80,5 +80,93 @@ export const transfersRouter = createTRPCRouter({
           hasPreviousPage: page > 1,
         },
       }
+    }),
+  getTransfersPerWallet: publicProcedure
+    .input(
+      z.object({
+        safeAddress: z.string(),
+        limit: z.number().default(100),
+      })
+    )
+    .query(async ({ ctx, input }): Promise<Transfer[]> => {
+      const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${input.safeAddress}/transfers/?limit=${input.limit}`
+      const response = await fetch(apiUrl)
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch transfers for safe ${input.safeAddress}`
+        )
+      }
+
+      const data = await response.json()
+      return data.results
+        .filter((transfer: Transfer) => {
+          if (!transfer.tokenInfo) return true
+          return transfer.tokenInfo.trusted === true
+        })
+        .map((transfer: Transfer) => ({
+          ...transfer,
+          safe: input.safeAddress,
+        }))
+    }),
+  writeTransfer: publicProcedure
+    .input(
+      z.object({
+        transfer: z.object({
+          transferId: z.string(),
+          safeAddress: z.string(),
+          type: z.enum(['ETHER_TRANSFER', 'ERC20_TRANSFER']),
+          executionDate: z.string(),
+          blockNumber: z.number(),
+          transactionHash: z.string(),
+          fromAddress: z.string(),
+          toAddress: z.string(),
+          value: z.string(),
+          tokenAddress: z.string().nullable(),
+          tokenInfo: z
+            .object({
+              name: z.string(),
+              symbol: z.string(),
+              decimals: z.number(),
+              logoUri: z.string().optional(),
+            })
+            .nullable(),
+        }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .insert(transfers)
+        .values({
+          transferId: input.transfer.transferId,
+          safeAddress: input.transfer.safeAddress,
+          type: input.transfer.type,
+          executionDate: new Date(input.transfer.executionDate),
+          blockNumber: input.transfer.blockNumber,
+          transactionHash: input.transfer.transactionHash,
+          fromAddress: input.transfer.fromAddress,
+          toAddress: input.transfer.toAddress,
+          value: input.transfer.value,
+          tokenAddress: input.transfer.tokenAddress,
+          tokenName: input.transfer.tokenInfo?.name,
+          tokenSymbol: input.transfer.tokenInfo?.symbol,
+          tokenDecimals: input.transfer.tokenInfo?.decimals,
+          tokenLogoUri: input.transfer.tokenInfo?.logoUri,
+        })
+        .onConflictDoNothing()
+
+      return { success: true }
+    }),
+  getAllTransfersByWallet: publicProcedure
+    .input(
+      z.object({
+        safeAddress: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select()
+        .from(transfers)
+        .where(eq(transfers.safeAddress, input.safeAddress))
     }),
 })

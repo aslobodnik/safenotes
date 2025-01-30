@@ -6,12 +6,15 @@ import { Layout } from '@/components/Layout'
 import SafeBalances from '@/components/SafeBalances'
 import SafeSelector from '@/components/SafeSelector'
 import SafeSigners from '@/components/SafeSigners'
+import { SyncTransactionsDialog } from '@/components/SyncTransactionsDialog'
 import TransactionTable from '@/components/TransactionTable'
+import { Button } from '@/components/ui/button'
 import { api } from '@/utils/trpc'
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false)
 
   const { data: transfers, isLoading } = api.transfers.getTransfers.useQuery({
     page: currentPage,
@@ -66,6 +69,12 @@ export default function Home() {
                 safeAddress={selectedSafe}
                 onChange={setSelectedSafe}
               />
+              <Button
+                onClick={() => setIsSyncDialogOpen(true)}
+                className="whitespace-nowrap"
+              >
+                Sync Transactions
+              </Button>
             </div>
           </div>
 
@@ -82,6 +91,11 @@ export default function Home() {
           onPageChange={setCurrentPage}
           isLoading={isLoading}
           categories={categories || []}
+        />
+
+        <SyncTransactionsDialog
+          isOpen={isSyncDialogOpen}
+          onClose={() => setIsSyncDialogOpen(false)}
         />
       </div>
     </Layout>
