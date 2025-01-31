@@ -52,20 +52,16 @@ export const transfers = pgTable('transfers', {
 
 export type TransferItem = InferSelectModel<typeof transfers>
 
-export const transferCategories = pgTable(
-  'transfer_categories',
-  {
-    transferId: text('transfer_id')
-      .notNull()
-      .references(() => transfers.transferId),
-    categoryId: uuid('category_id')
-      .notNull()
-      .references(() => categories.id),
-  },
-  (table) => ({
-    pk: primaryKey(table.transferId, table.categoryId),
-  })
-)
+export const transferCategories = pgTable('transfer_categories', {
+  id: uuid('id').primaryKey().defaultRandom().notNull(),
+  transferId: text('transfer_id')
+    .notNull()
+    .references(() => transfers.transferId),
+  categoryId: uuid('category_id')
+    .notNull()
+    .references(() => categories.id),
+  description: text('description'),
+})
 
 export type TransferCategoryItem = InferSelectModel<typeof transferCategories>
 

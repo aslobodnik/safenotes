@@ -13,14 +13,27 @@ import { api } from '@/utils/trpc'
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false)
 
-  const { data: transfers, isLoading } = api.transfers.getTransfers.useQuery({
-    page: currentPage,
+  const {
+    data: transfers,
+    isLoading: transfersLoading,
+    isError: transfersError,
+  } = api.transfers.getTransfers.useQuery({
     safeAddress: selectedSafe,
-    includeRemoved: false,
   })
+
+  const {
+    data: transferCategories,
+    isLoading: transferCategoriesLoading,
+    isError: transferCategoriesError,
+  } = api.categories.getAllTransferCategories.useQuery()
+
+  const {
+    data: categories,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+  } = api.categories.getAll.useQuery()
 
   const { data: signersData } = useQuery({
     queryKey: ['safe-signers', selectedSafe],
@@ -38,17 +51,6 @@ export default function Home() {
       return await response.json()
     },
     enabled: !!selectedSafe,
-  })
-
-  const { data: categories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const response = await fetch('/api/categories')
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories')
-      }
-      return await response.json()
-    },
   })
 
   return (
@@ -71,7 +73,7 @@ export default function Home() {
               />
               <Button
                 onClick={() => setIsSyncDialogOpen(true)}
-                className="whitespace-nowrap"
+                className="whitespace-nowrap bg-blue-500 hover:bg-blue-600"
               >
                 Sync Transactions
               </Button>
@@ -84,14 +86,21 @@ export default function Home() {
           </div>
         </div>
 
-        <TransactionTable
-          transfers={transfers?.results || []}
-          safeAddress={selectedSafe}
-          pagination={transfers?.pagination || null}
-          onPageChange={setCurrentPage}
-          isLoading={isLoading}
-          categories={categories || []}
-        />
+        {(transfersLoading ||
+          transferCategoriesLoading ||
+          categoriesLoading) && <div> transfers loading </div>}
+        {(transfersError || transferCategoriesError || categoriesError) && (
+          <div> transfers error </div>
+        )}
+        {transfers && (
+          <TransactionTable
+            transfers={transfers || []}
+            transferCategories={transferCategories || []}
+            categories={categories || []}
+            safeAddress={selectedSafe}
+            isLoading={transfersLoading || transferCategoriesLoading}
+          />
+        )}
 
         <SyncTransactionsDialog
           isOpen={isSyncDialogOpen}
