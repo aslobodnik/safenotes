@@ -1,86 +1,37 @@
-import { eq } from 'drizzle-orm'
+import { desc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { safes, transfers } from '@/db/schema'
+import { TransferItem, safes, transferCategories, transfers } from '@/db/schema'
 import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
-import type { Transfer, TransferResponse } from '@/types/transfers'
+import {
+  SafeTransfer,
+  fetchSafeTransfers,
+  filterTrustedTransfers,
+} from '@/utils/safe-global-adapter'
 
-const ITEMS_PER_PAGE = 20
+const safeTransferSchema = z.object({
+  type: z.enum(['ETHER_TRANSFER', 'ERC20_TRANSFER']),
+  executionDate: z.string(),
+  blockNumber: z.number(),
+  transactionHash: z.string(),
+  transferId: z.string(),
+  to: z.string(),
+  from: z.string(),
+  value: z.string(),
+  tokenAddress: z.string().nullable(),
+  tokenInfo: z
+    .object({
+      name: z.string(),
+      symbol: z.string(),
+      decimals: z.number(),
+      logoUri: z.string().optional(),
+      trusted: z.boolean(),
+    })
+    .nullable(),
+  safeAddress: z.string(),
+})
 
 export const transfersRouter = createTRPCRouter({
-  getTransfers: publicProcedure
-    .input(
-      z.object({
-        page: z.number().default(1),
-        safeAddress: z.string().nullable().optional(),
-        includeRemoved: z.boolean().default(false),
-      })
-    )
-    .query(async ({ ctx, input }): Promise<TransferResponse> => {
-      const { page, safeAddress, includeRemoved } = input
-
-      // Get safes using Drizzle
-      const safesList = safeAddress
-        ? await ctx.db
-            .select()
-            .from(safes)
-            .where(eq(safes.address, safeAddress))
-        : includeRemoved
-          ? await ctx.db.select().from(safes)
-          : await ctx.db.select().from(safes).where(eq(safes.removed, false))
-
-      let allTransfers: Transfer[] = []
-      for (const safe of safesList) {
-        const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${safe.address}/transfers/?limit=1000`
-        const response = await fetch(apiUrl)
-
-        if (!response.ok) {
-          console.error(`Failed to fetch transfers for safe ${safe.address}`)
-          continue
-        }
-
-        const data = await response.json()
-
-        const trustedTransfers = data.results
-          .filter((transfer: Transfer) => {
-            if (!transfer.tokenInfo) return true
-            return transfer.tokenInfo.trusted === true
-          })
-          .map((transfer: Transfer) => ({
-            ...transfer,
-            safe: safe.address,
-          }))
-
-        allTransfers = [...allTransfers, ...trustedTransfers]
-      }
-
-      // Sort by execution date, most recent first
-      allTransfers.sort(
-        (a, b) =>
-          new Date(b.executionDate).getTime() -
-          new Date(a.executionDate).getTime()
-      )
-
-      const totalItems = allTransfers.length
-      const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
-      const startIndex = (page - 1) * ITEMS_PER_PAGE
-      const paginatedTransfers = allTransfers.slice(
-        startIndex,
-        startIndex + ITEMS_PER_PAGE
-      )
-
-      return {
-        results: paginatedTransfers,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems,
-          itemsPerPage: ITEMS_PER_PAGE,
-          hasNextPage: page < totalPages,
-          hasPreviousPage: page > 1,
-        },
-      }
-    }),
   getTransfersPerWallet: publicProcedure
     .input(
       z.object({
@@ -88,70 +39,40 @@ export const transfersRouter = createTRPCRouter({
         limit: z.number().default(100),
       })
     )
-    .query(async ({ ctx, input }): Promise<Transfer[]> => {
-      const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${input.safeAddress}/transfers/?limit=${input.limit}`
-      const response = await fetch(apiUrl)
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch transfers for safe ${input.safeAddress}`
-        )
-      }
-
-      const data = await response.json()
-      return data.results
-        .filter((transfer: Transfer) => {
-          if (!transfer.tokenInfo) return true
-          return transfer.tokenInfo.trusted === true
-        })
-        .map((transfer: Transfer) => ({
-          ...transfer,
-          safe: input.safeAddress,
-        }))
+    .query(async ({ input }) => {
+      const { results } = await fetchSafeTransfers(
+        input.safeAddress,
+        input.limit
+      )
+      return filterTrustedTransfers(results)
     }),
   writeTransfer: publicProcedure
     .input(
       z.object({
-        transfer: z.object({
-          transferId: z.string(),
-          safeAddress: z.string(),
-          type: z.enum(['ETHER_TRANSFER', 'ERC20_TRANSFER']),
-          executionDate: z.string(),
-          blockNumber: z.number(),
-          transactionHash: z.string(),
-          fromAddress: z.string(),
-          toAddress: z.string(),
-          value: z.string(),
-          tokenAddress: z.string().nullable(),
-          tokenInfo: z
-            .object({
-              name: z.string(),
-              symbol: z.string(),
-              decimals: z.number(),
-              logoUri: z.string().optional(),
-            })
-            .nullable(),
-        }),
+        transfer: safeTransferSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { transfer } = input
+
       await ctx.db
         .insert(transfers)
         .values({
-          transferId: input.transfer.transferId,
-          safeAddress: input.transfer.safeAddress,
-          type: input.transfer.type,
-          executionDate: new Date(input.transfer.executionDate),
-          blockNumber: input.transfer.blockNumber,
-          transactionHash: input.transfer.transactionHash,
-          fromAddress: input.transfer.fromAddress,
-          toAddress: input.transfer.toAddress,
-          value: input.transfer.value,
-          tokenAddress: input.transfer.tokenAddress,
-          tokenName: input.transfer.tokenInfo?.name,
-          tokenSymbol: input.transfer.tokenInfo?.symbol,
-          tokenDecimals: input.transfer.tokenInfo?.decimals,
-          tokenLogoUri: input.transfer.tokenInfo?.logoUri,
+          transferId: transfer.transferId,
+          safeAddress: transfer.safeAddress,
+          type: transfer.type,
+          executionDate: new Date(transfer.executionDate),
+          blockNumber: transfer.blockNumber,
+          transactionHash: transfer.transactionHash,
+          fromAddress: transfer.from,
+          toAddress: transfer.to,
+          value: transfer.value,
+          tokenAddress: transfer.tokenAddress,
+          tokenName: transfer.tokenInfo?.name ?? null,
+          tokenSymbol: transfer.tokenInfo?.symbol ?? null,
+          tokenDecimals: transfer.tokenInfo?.decimals ?? null,
+          tokenLogoUri: transfer.tokenInfo?.logoUri ?? null,
+          createdAt: new Date(),
         })
         .onConflictDoNothing()
 
@@ -168,5 +89,48 @@ export const transfersRouter = createTRPCRouter({
         .select()
         .from(transfers)
         .where(eq(transfers.safeAddress, input.safeAddress))
+    }),
+  getTransfers: publicProcedure
+    .input(
+      z.object({
+        safeAddress: z.string().nullable().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const query = ctx.db
+        .select()
+        .from(transfers)
+        .orderBy(desc(transfers.executionDate))
+
+      if (input.safeAddress) {
+        query.where(eq(transfers.safeAddress, input.safeAddress))
+      }
+
+      return query
+    }),
+  updateCategory: publicProcedure
+    .input(
+      z.object({
+        transferId: z.string(),
+        categoryId: z.string().nullable(),
+        description: z.string().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // First delete any existing category mapping
+      await ctx.db
+        .delete(transferCategories)
+        .where(eq(transferCategories.transferId, input.transferId))
+
+      // If a new category is selected, create the mapping
+      if (input.categoryId) {
+        await ctx.db.insert(transferCategories).values({
+          transferId: input.transferId,
+          categoryId: input.categoryId,
+          description: input.description,
+        })
+      }
+
+      return { success: true }
     }),
 })

@@ -120,46 +120,62 @@ export function SyncTransactionsDialog({
           }
 
           // Write new transfer
-          await writeTransfer({
-            transfer: {
-              transferId: transfer.transferId,
-              safeAddress: safe.address,
-              type: transfer.type,
-              executionDate: transfer.executionDate,
-              blockNumber: transfer.blockNumber,
-              transactionHash: transfer.transactionHash,
-              fromAddress: transfer.from,
-              toAddress: transfer.to,
-              value: transfer.value,
-              tokenAddress: transfer.tokenAddress,
-              tokenInfo: transfer.tokenInfo
-                ? {
-                    name: transfer.tokenInfo.name,
-                    symbol: transfer.tokenInfo.symbol,
-                    decimals: transfer.tokenInfo.decimals,
-                    logoUri: transfer.tokenInfo.logoUri,
-                  }
-                : null,
-            },
-          })
-
-          // Update progress
-          setSyncStatus((prev) => ({
-            ...prev,
-            [safe.address]: {
-              ...prev[safe.address],
-              progress: {
-                ...prev[safe.address].progress!,
-                current: i + 1,
+          try {
+            await writeTransfer({
+              transfer: {
+                transferId: transfer.transferId,
+                safeAddress: safe.address,
+                type: transfer.type,
+                executionDate: transfer.executionDate,
+                blockNumber: transfer.blockNumber,
+                transactionHash: transfer.transactionHash,
+                from: transfer.from,
+                to: transfer.to,
+                value: transfer.value,
+                tokenAddress: transfer.tokenAddress,
+                tokenInfo: transfer.tokenInfo
+                  ? {
+                      name: transfer.tokenInfo.name,
+                      symbol: transfer.tokenInfo.symbol,
+                      decimals: transfer.tokenInfo.decimals,
+                      logoUri: transfer.tokenInfo.logoUri,
+                      trusted: transfer.tokenInfo.trusted,
+                    }
+                  : null,
               },
-            },
-          }))
+            })
+
+            // Update progress
+            setSyncStatus((prev) => ({
+              ...prev,
+              [safe.address]: {
+                ...prev[safe.address],
+                progress: {
+                  ...prev[safe.address].progress!,
+                  current: i + 1,
+                },
+              },
+            }))
+          } catch (error) {
+            // Set error status and halt the sync
+            setSyncStatus((prev) => ({
+              ...prev,
+              [safe.address]: {
+                status: 'error',
+                message:
+                  error instanceof Error ? error.message : 'Unknown error',
+                progress: prev[safe.address].progress,
+              },
+            }))
+            // Exit the entire sync process
+            return
+          }
 
           // Add small delay to prevent rate limiting
           await new Promise((resolve) => setTimeout(resolve, 100))
         }
 
-        // Mark as completed
+        // Mark as completed only if we get through all transfers
         setSyncStatus((prev) => ({
           ...prev,
           [safe.address]: {
@@ -176,6 +192,8 @@ export function SyncTransactionsDialog({
             progress: prev[safe.address].progress,
           },
         }))
+        // Exit the sync process on any other errors
+        return
       }
     }
   }

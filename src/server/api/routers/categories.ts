@@ -1,7 +1,7 @@
 import { asc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { categories } from '@/db/schema'
+import { categories, transferCategories } from '@/db/schema'
 import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
 
 export const categoriesRouter = createTRPCRouter({
@@ -47,4 +47,27 @@ export const categoriesRouter = createTRPCRouter({
 
       return ctx.db.select().from(categories).orderBy(asc(categories.name))
     }),
+
+  getTransferCategories: publicProcedure
+    .input(
+      z.object({
+        transferId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const query = ctx.db
+        .select()
+        .from(transferCategories)
+        .leftJoin(categories, eq(categories.id, transferCategories.categoryId))
+
+      if (input.transferId) {
+        query.where(eq(transferCategories.transferId, input.transferId))
+      }
+
+      return query
+    }),
+
+  getAllTransferCategories: publicProcedure.query(async ({ ctx }) => {
+    return ctx.db.query.transferCategories.findMany()
+  }),
 })

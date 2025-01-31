@@ -1,12 +1,27 @@
 import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 
+import { EditCategoryDialog } from '@/components/EditCategoryDialog'
+import { Button } from '@/components/ui/button'
+import {
+  type CategoryItem,
+  type TransferCategoryItem,
+  type TransferItem,
+} from '@/db/schema'
 import { truncateAddress } from '@/lib/utils'
 import { publicClient } from '@/lib/web3'
-import { TransactionTableProps } from '@/types/transfers'
+import { api } from '@/utils/trpc'
 
 interface AddressMap {
   [key: string]: string | null
+}
+
+interface TransactionTableProps {
+  transfers: TransferItem[]
+  transferCategories: TransferCategoryItem[]
+  safeAddress: string | null
+  isLoading: boolean
+  categories: CategoryItem[]
 }
 
 interface PaginationProps {
@@ -47,47 +62,39 @@ function Pagination({
   )
 }
 
+const ITEMS_PER_PAGE = 20
+
 export default function TransactionTable({
   transfers,
+  transferCategories,
   safeAddress,
-  pagination,
-  onPageChange,
   isLoading,
   categories,
 }: TransactionTableProps) {
+  const [currentPage, setCurrentPage] = useState(1)
   const [ensNames, setEnsNames] = useState<AddressMap>({})
-  const [localCategories, setLocalCategories] = useState<{
-    [key: string]: string
-  }>({})
+  const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
+  const utils = api.useUtils()
 
-  // Initialize localCategories with existing categories
-  useEffect(() => {
-    if (transfers) {
-      const initialCategories = transfers.reduce(
-        (acc, transfer) => {
-          if (transfer.categoryId) {
-            acc[transfer.transferId] = transfer.categoryId
-          }
-          return acc
-        },
-        {} as { [key: string]: string }
-      )
-
-      setLocalCategories(initialCategories)
-    }
-  }, [transfers])
+  // Calculate pagination
+  const totalItems = transfers.length
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const paginatedTransfers = transfers.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  )
 
   // Collect unique addresses from transfers
   useEffect(() => {
     const fetchEnsNames = async () => {
       const uniqueAddresses = new Set<string>()
 
-      // Add null check for transfers
       if (!transfers) return
 
       transfers.forEach((transfer) => {
-        uniqueAddresses.add(transfer.from)
-        uniqueAddresses.add(transfer.to)
+        uniqueAddresses.add(transfer.fromAddress)
+        uniqueAddresses.add(transfer.toAddress)
       })
 
       const names: AddressMap = {}
@@ -121,14 +128,35 @@ export default function TransactionTable({
     return truncateAddress(address)
   }
 
-  const handleCategoryChange = async (
-    transferId: string,
-    categoryId: string
-  ) => {
-    setLocalCategories((prev) => ({
-      ...prev,
-      [transferId]: categoryId,
-    }))
+  const handleEditCategory = (transferId: string) => {
+    setEditingTransfer(transferId)
+  }
+
+  const handleDialogClose = async () => {
+    setEditingTransfer(null)
+    // Refetch the transfer categories to update the UI
+    await Promise.all([
+      utils.transfers.getTransfers.invalidate(),
+      utils.transfers.getAllTransfersByWallet.invalidate(),
+      utils.categories.getTransferCategories.invalidate(),
+    ])
+  }
+
+  const getCategoryName = (transferId: string): string => {
+    const currentMapping = transferCategories.find(
+      (tc) => tc.transferId === transferId
+    )
+    if (!currentMapping) return 'None'
+
+    const category = categories.find((c) => c.id === currentMapping.categoryId)
+    return category?.name || 'None'
+  }
+
+  const getCategoryDescription = (transferId: string): string => {
+    const currentMapping = transferCategories.find(
+      (tc) => tc.transferId === transferId
+    )
+    return currentMapping?.description || '-'
   }
 
   if (isLoading) {
@@ -137,6 +165,7 @@ export default function TransactionTable({
         <table className="min-w-full">
           <thead className="border-b">
             <tr>
+              <th className="p-4 text-left">Edit</th>
               <th className="p-4 text-left">Safe</th>
               <th className="p-4 text-left">Action</th>
               <th className="p-4 text-left">Address</th>
@@ -149,6 +178,9 @@ export default function TransactionTable({
           <tbody>
             {[...Array(5)].map((_, i) => (
               <tr key={i} className="animate-pulse border-b">
+                <td className="p-4">
+                  <div className="h-4 w-8 rounded bg-gray-200"></div>
+                </td>
                 <td className="p-4">
                   <div className="h-4 w-24 rounded bg-gray-200"></div>
                 </td>
@@ -184,9 +216,40 @@ export default function TransactionTable({
 
   return (
     <div>
+      <EditCategoryDialog
+        isOpen={!!editingTransfer}
+        onClose={handleDialogClose}
+        transferId={editingTransfer || ''}
+        currentCategoryId={
+          editingTransfer
+            ? transferCategories.find((tc) => tc.transferId === editingTransfer)
+                ?.categoryId || null
+            : null
+        }
+        currentDescription={
+          editingTransfer
+            ? transferCategories.find((tc) => tc.transferId === editingTransfer)
+                ?.description || ''
+            : ''
+        }
+        categories={categories}
+        safeAddress={
+          editingTransfer
+            ? transfers.find((t) => t.transferId === editingTransfer)
+                ?.safeAddress || ''
+            : ''
+        }
+        transactionHash={
+          editingTransfer
+            ? transfers.find((t) => t.transferId === editingTransfer)
+                ?.transactionHash || ''
+            : ''
+        }
+      />
       <table className="min-w-full">
         <thead className="border-b">
           <tr>
+            <th className="p-4 text-left">Edit</th>
             <th className="p-4 text-left">Safe</th>
             <th className="p-4 text-left">Action</th>
             <th className="p-4 text-left">Address</th>
@@ -197,19 +260,32 @@ export default function TransactionTable({
           </tr>
         </thead>
         <tbody>
-          {transfers.map((transfer) => {
-            // If a safe is selected, use it to determine direction
-            // Otherwise use the transfer's safe
+          {paginatedTransfers.map((transfer) => {
             const isOutgoing = safeAddress
-              ? transfer.from.toLowerCase() === safeAddress.toLowerCase()
-              : transfer.from.toLowerCase() === transfer.safe?.toLowerCase()
+              ? transfer.fromAddress.toLowerCase() === safeAddress.toLowerCase()
+              : transfer.fromAddress.toLowerCase() ===
+                transfer.safeAddress.toLowerCase()
 
-            const counterpartyAddress = isOutgoing ? transfer.to : transfer.from
+            const counterpartyAddress = isOutgoing
+              ? transfer.toAddress
+              : transfer.fromAddress
+
+            const categoryName = getCategoryName(transfer.transferId)
+            const description = getCategoryDescription(transfer.transferId)
 
             return (
               <tr key={transfer.transferId} className="border-b">
+                <td className="p-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditCategory(transfer.transferId)}
+                  >
+                    ✏️
+                  </Button>
+                </td>
                 <td className="p-4 font-mono">
-                  {formatAddress(transfer.safe || '')}
+                  {formatAddress(transfer.safeAddress)}
                 </td>
                 <td className="p-4 font-mono">
                   <a
@@ -226,44 +302,25 @@ export default function TransactionTable({
                   {formatAddress(counterpartyAddress)}
                 </td>
                 <td className="p-4 text-right">
-                  {transfer.tokenInfo?.symbol === 'ETH' ||
-                  transfer.tokenInfo?.symbol === 'WETH' ||
-                  !transfer.tokenInfo
+                  {transfer.tokenSymbol === 'ETH' ||
+                  transfer.tokenSymbol === 'WETH' ||
+                  !transfer.tokenSymbol
                     ? `${(
                         Number(transfer.value) / Math.pow(10, 18)
                       ).toLocaleString(undefined, {
                         minimumFractionDigits: 1,
                         maximumFractionDigits: 1,
-                      })} ${transfer.tokenInfo?.symbol || 'ETH'}`
+                      })} ${transfer.tokenSymbol || 'ETH'}`
                     : `${(
                         Number(transfer.value) /
-                        Math.pow(10, transfer.tokenInfo.decimals)
+                        Math.pow(10, transfer.tokenDecimals || 18)
                       ).toLocaleString(undefined, {
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
-                      })} ${transfer.tokenInfo.symbol}`}
+                      })} ${transfer.tokenSymbol}`}
                 </td>
-                <td className="whitespace-nowrap p-4">
-                  <select
-                    className="rounded border p-1"
-                    value={
-                      localCategories[transfer.transferId] ||
-                      transfer.categoryId ||
-                      ''
-                    }
-                    onChange={(e) =>
-                      handleCategoryChange(transfer.transferId, e.target.value)
-                    }
-                  >
-                    <option value="">Select category</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="p-4">{transfer.description || '-'}</td>
+                <td className="whitespace-nowrap p-4">{categoryName}</td>
+                <td className="p-4">{description}</td>
                 <td className="p-4">
                   {format(new Date(transfer.executionDate), 'd MMM yyyy')}
                 </td>
@@ -272,15 +329,14 @@ export default function TransactionTable({
           })}
         </tbody>
       </table>
-      {pagination && (
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          hasNextPage={pagination.hasNextPage}
-          hasPreviousPage={pagination.hasPreviousPage}
-          onPageChange={onPageChange}
-        />
-      )}
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        hasNextPage={currentPage < totalPages}
+        hasPreviousPage={currentPage > 1}
+        onPageChange={setCurrentPage}
+      />
     </div>
   )
 }
