@@ -58,13 +58,13 @@ export default function Home() {
               onChange={setSelectedSafe}
             />
             <SafeStats safeAddress={selectedSafe} />
-            <Button
-              onClick={() => setIsSyncDialogOpen(true)}
-              className="whitespace-nowrap bg-blue-500 hover:bg-blue-600"
-            >
-              Sync Transactions
-            </Button>
           </div>
+          <Button
+            onClick={() => setIsSyncDialogOpen(true)}
+            className="whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100"
+          >
+            Sync
+          </Button>
         </div>
         {(transfersLoading ||
           transferCategoriesLoading ||
