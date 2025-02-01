@@ -58,14 +58,6 @@ export default function Home() {
               onChange={setSelectedSafe}
             />
             <SafeStats safeAddress={selectedSafe} />
-
-
-            <Button
-              onClick={() => setIsSyncDialogOpen(true)}
-              className="whitespace-nowrap bg-blue-500 hover:bg-blue-600"
-            >
-              Sync Transactions
-            </Button>
           </div>
           <Button
             onClick={() => setIsSyncDialogOpen(true)}
