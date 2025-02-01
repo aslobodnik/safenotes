@@ -1,11 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
 import { useState } from 'react'
 
 import { Layout } from '@/components/Layout'
-import SafeBalances from '@/components/SafeBalances'
 import SafeSelector from '@/components/SafeSelector'
-import SafeSigners from '@/components/SafeSigners'
+import { SafeStats } from '@/components/SafeStats'
 import { SyncTransactionsDialog } from '@/components/SyncTransactionsDialog'
 import TransactionTable from '@/components/TransactionTable'
 import { Button } from '@/components/ui/button'
@@ -35,57 +33,39 @@ export default function Home() {
     isError: categoriesError,
   } = api.categories.getAll.useQuery()
 
-  const { data: signersData } = useQuery({
-    queryKey: ['safe-signers', selectedSafe],
-    queryFn: async () => {
-      const safeApiUrl = new URL(
-        `/api/v1/safes/${selectedSafe}/`,
-        process.env.NEXT_PUBLIC_SAFES_API_URL
-      )
-
-      const response = await fetch(safeApiUrl)
-      if (!response.ok) {
-        throw new Error('Failed to fetch safe signers')
-      }
-
-      return await response.json()
-    },
-    enabled: !!selectedSafe,
-  })
-
   return (
     <Layout>
       <div className="space-y-4">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex flex-col gap-4">
-            <Image
-              src="/img/logo-filled.svg"
-              alt="ENS Logo"
-              width={128}
-              height={128}
-              className="w-28 -rotate-3 rounded-3xl border-4 border-white shadow-[0_0_22px_0_#00000029] md:w-32"
-            />
-
-            <div className="flex items-center gap-4">
-              <SafeSelector
-                safeAddress={selectedSafe}
-                onChange={setSelectedSafe}
-              />
-              <Button
-                onClick={() => setIsSyncDialogOpen(true)}
-                className="whitespace-nowrap bg-blue-500 hover:bg-blue-600"
-              >
-                Sync Transactions
-              </Button>
+        <div className="flex justify-between">
+          <div className="flex flex-col gap-3">
+            <h1 className="text-4xl font-bold">Explore ENS Safes</h1>
+            <div className="text-neutral-500">
+              View transactions and annotations of ENS DAO Working Group Safes.
             </div>
           </div>
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:gap-12">
-            <SafeSigners signersData={signersData} />
-            <SafeBalances safeAddress={selectedSafe} />
+          <Image
+            src="/img/logo-filled.svg"
+            alt="ENS Logo"
+            width={80}
+            height={80}
+            className="w-28 -rotate-3 rounded-3xl border-2 border-white shadow-[0_0_22px_0_#00000029]"
+          />
+        </div>
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div className="flex items-center gap-4">
+            <SafeSelector
+              safeAddress={selectedSafe}
+              onChange={setSelectedSafe}
+            />
+            <SafeStats safeAddress={selectedSafe} />
+            <Button
+              onClick={() => setIsSyncDialogOpen(true)}
+              className="whitespace-nowrap bg-blue-500 hover:bg-blue-600"
+            >
+              Sync Transactions
+            </Button>
           </div>
         </div>
-
         {(transfersLoading ||
           transferCategoriesLoading ||
           categoriesLoading) && <div> transfers loading </div>}
@@ -101,7 +81,6 @@ export default function Home() {
             isLoading={transfersLoading || transferCategoriesLoading}
           />
         )}
-
         <SyncTransactionsDialog
           isOpen={isSyncDialogOpen}
           onClose={() => setIsSyncDialogOpen(false)}
