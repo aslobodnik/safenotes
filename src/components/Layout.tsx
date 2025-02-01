@@ -46,6 +46,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="p-8">{children}</main>
+      <footer className="mr-8 flex items-center justify-end gap-4 p-4">
+        <Link
+          className="transition-colors duration-300 hover:text-brand"
+          target="_blank"
+          href="https://ens.domains/"
+        >
+          ENS
+        </Link>{' '}
+        /{' '}
+        <Link
+          className="transition-colors duration-300 hover:text-brand"
+          target="_blank"
+          href="https://docs.ens.domains/dao"
+        >
+          Goverance
+        </Link>{' '}
+        /
+        <Link
+          className="transition-colors duration-300 hover:text-brand"
+          target="_blank"
+          href="https://github.com/"
+        >
+          Github
+        </Link>
+      </footer>
     </div>
   )
 }
