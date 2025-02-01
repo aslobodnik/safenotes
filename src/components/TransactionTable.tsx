@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react'
 import { EditCategoryDialog } from '@/components/EditCategoryDialog'
 import { Button } from '@/components/ui/button'
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
   type CategoryItem,
   type TransferCategoryItem,
   type TransferItem,
@@ -161,61 +169,61 @@ export default function TransactionTable({
 
   if (isLoading) {
     return (
-      <div>
-        <table className="min-w-full">
-          <thead className="border-b">
-            <tr>
-              <th className="p-4 text-left">Edit</th>
-              <th className="p-4 text-left">Safe</th>
-              <th className="p-4 text-left">Action</th>
-              <th className="p-4 text-left">Address</th>
-              <th className="p-4 text-right">Amount</th>
-              <th className="p-4 text-left">Category</th>
-              <th className="p-4 text-left">Description</th>
-              <th className="p-4 text-left">Date</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Edit</TableHead>
+              <TableHead>Safe</TableHead>
+              <TableHead>Action</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {[...Array(5)].map((_, i) => (
-              <tr key={i} className="animate-pulse border-b">
-                <td className="p-4">
+              <TableRow key={i} className="animate-pulse">
+                <TableCell>
                   <div className="h-4 w-8 rounded bg-gray-200"></div>
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell>
                   <div className="h-4 w-24 rounded bg-gray-200"></div>
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell>
                   <div className="h-4 w-4 rounded bg-gray-200"></div>
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell>
                   <div className="h-4 w-32 rounded bg-gray-200"></div>
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell className="text-right">
                   <div className="ml-auto h-4 w-20 rounded bg-gray-200"></div>
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell>
                   <div className="h-4 w-16 rounded bg-gray-200"></div>
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell>
                   <div className="h-4 w-40 rounded bg-gray-200"></div>
-                </td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell>
                   <div className="h-4 w-24 rounded bg-gray-200"></div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     )
   }
 
   if (!transfers || transfers.length === 0) {
-    return <div>No transfers found</div>
+    return <div className="text-muted-foreground">No transfers found</div>
   }
 
   return (
-    <div>
+    <div className="rounded-lg border">
       <EditCategoryDialog
         isOpen={!!editingTransfer}
         onClose={handleDialogClose}
@@ -246,20 +254,20 @@ export default function TransactionTable({
             : ''
         }
       />
-      <table className="min-w-full">
-        <thead className="border-b">
-          <tr>
-            <th className="p-4 text-left">Edit</th>
-            <th className="p-4 text-left">Safe</th>
-            <th className="p-4 text-left">Action</th>
-            <th className="p-4 text-left">Address</th>
-            <th className="p-4 text-right">Amount</th>
-            <th className="p-4 text-left">Category</th>
-            <th className="p-4 text-left">Description</th>
-            <th className="p-4 text-left">Date</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Edit</TableHead>
+            <TableHead>Safe</TableHead>
+            <TableHead>Action</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Date</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {paginatedTransfers.map((transfer) => {
             const isOutgoing = safeAddress
               ? transfer.fromAddress.toLowerCase() === safeAddress.toLowerCase()
@@ -274,8 +282,8 @@ export default function TransactionTable({
             const description = getCategoryDescription(transfer.transferId)
 
             return (
-              <tr key={transfer.transferId} className="border-b">
-                <td className="p-4">
+              <TableRow key={transfer.transferId}>
+                <TableCell>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -283,11 +291,11 @@ export default function TransactionTable({
                   >
                     ✏️
                   </Button>
-                </td>
-                <td className="p-4 font-mono">
+                </TableCell>
+                <TableCell className="font-mono">
                   {formatAddress(transfer.safeAddress)}
-                </td>
-                <td className="p-4 font-mono">
+                </TableCell>
+                <TableCell className="font-mono">
                   <a
                     href={`https://etherscan.io/tx/${transfer.transactionHash}`}
                     target="_blank"
@@ -297,11 +305,11 @@ export default function TransactionTable({
                   >
                     {isOutgoing ? '→' : '←'}
                   </a>
-                </td>
-                <td className="p-4 font-mono" title={counterpartyAddress}>
+                </TableCell>
+                <TableCell className="font-mono" title={counterpartyAddress}>
                   {formatAddress(counterpartyAddress)}
-                </td>
-                <td className="p-4 text-right">
+                </TableCell>
+                <TableCell className="text-right">
                   {transfer.tokenSymbol === 'ETH' ||
                   transfer.tokenSymbol === 'WETH' ||
                   !transfer.tokenSymbol
@@ -318,17 +326,21 @@ export default function TransactionTable({
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0,
                       })} ${transfer.tokenSymbol}`}
-                </td>
-                <td className="whitespace-nowrap p-4">{categoryName}</td>
-                <td className="p-4">{description}</td>
-                <td className="p-4">
+                </TableCell>
+                <TableCell className="whitespace-nowrap font-medium">
+                  {categoryName}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {description}
+                </TableCell>
+                <TableCell>
                   {format(new Date(transfer.executionDate), 'd MMM yyyy')}
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
 
       <Pagination
         currentPage={currentPage}
