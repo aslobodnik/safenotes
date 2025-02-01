@@ -95,15 +95,14 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
 
   if (!safeAddress) return null
 
-  const totalEthBalance = balances
-    ?.filter(
-      (b) => !b.token || b.token.symbol === 'ETH' || b.token.symbol === 'WETH'
-    )
-    .reduce((acc, b) => acc + Number(b.balance) / Math.pow(10, 18), 0)
-    .toLocaleString(undefined, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    })
+  const totalUSDCBalance =
+    balances
+      ?.filter((b) => b.token?.symbol === 'USDC')
+      .reduce((acc, b) => acc + Number(b.balance) / Math.pow(10, 6), 0)
+      .toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }) || '0'
 
   return (
     <div className="flex items-center gap-4">
@@ -132,8 +131,8 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
       <HoverCard openDelay={200} closeDelay={300}>
         <HoverCardTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-200 px-4 py-2 pr-8">
           <Wallet size={24} className="text-neutral-700" />
-          <span className="text-sm text-neutral-900">{totalEthBalance}</span>
-          <span className="text-sm">ETH</span>
+          <span className="text-sm text-neutral-900">{totalUSDCBalance}</span>
+          <span className="text-sm">USDC</span>
         </HoverCardTrigger>
         <HoverCardContent className="w-[300px]" align="start" sideOffset={4}>
           <div className="space-y-2">
