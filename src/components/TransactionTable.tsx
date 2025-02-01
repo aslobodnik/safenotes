@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
@@ -184,6 +185,7 @@ export default function TransactionTable({
   isLoading,
   categories,
 }: TransactionTableProps) {
+  const { data: session } = useSession()
   const [currentPage, setCurrentPage] = useState(1)
   const [ensNames, setEnsNames] = useState<AddressMap>({})
   const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
@@ -242,6 +244,10 @@ export default function TransactionTable({
   }
 
   const handleEditCategory = (transferId: string) => {
+    if (!session) {
+      // Optionally add a toast notification here
+      return
+    }
     setEditingTransfer(transferId)
   }
 
@@ -278,7 +284,7 @@ export default function TransactionTable({
         <Table>
           <TableHeader>
             <TableRow className="h-[50px]">
-              <TableHead className="w-[60px]">Edit</TableHead>
+              {session && <TableHead className="w-[60px]">Edit</TableHead>}
               <TableHead className="w-[180px]">Safe</TableHead>
               <TableHead className="w-[200px]">Amount</TableHead>
               <TableHead className="w-[180px]">Address</TableHead>
@@ -294,9 +300,11 @@ export default function TransactionTable({
           <TableBody>
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px] animate-pulse">
-                <TableCell className="min-h-[50px] w-[60px]">
-                  <div className="h-8 w-8 rounded bg-gray-200" />
-                </TableCell>
+                {session && (
+                  <TableCell className="min-h-[50px] w-[60px]">
+                    <div className="h-8 w-8 rounded bg-gray-200" />
+                  </TableCell>
+                )}
                 <TableCell className="min-h-[50px] w-[180px]">
                   <div className="h-4 w-24 rounded bg-gray-200" />
                 </TableCell>
@@ -329,7 +337,7 @@ export default function TransactionTable({
         <Table>
           <TableHeader>
             <TableRow className="h-[50px]">
-              <TableHead className="w-[60px]">Edit</TableHead>
+              {session && <TableHead className="w-[60px]">Edit</TableHead>}
               <TableHead className="w-[180px]">Safe</TableHead>
               <TableHead className="w-[200px]">Amount</TableHead>
               <TableHead className="w-[180px]">Address</TableHead>
@@ -345,7 +353,7 @@ export default function TransactionTable({
           <TableBody>
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px]">
-                <TableCell className="w-[60px]" />
+                {session && <TableCell className="w-[60px]" />}
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[200px]" />
                 <TableCell className="w-[180px]" />
@@ -365,40 +373,44 @@ export default function TransactionTable({
 
   return (
     <div className="rounded-lg border">
-      <EditCategoryDialog
-        isOpen={!!editingTransfer}
-        onClose={handleDialogClose}
-        transferId={editingTransfer || ''}
-        currentCategoryId={
-          editingTransfer
-            ? transferCategories.find((tc) => tc.transferId === editingTransfer)
-                ?.categoryId || null
-            : null
-        }
-        currentDescription={
-          editingTransfer
-            ? transferCategories.find((tc) => tc.transferId === editingTransfer)
-                ?.description || ''
-            : ''
-        }
-        categories={categories}
-        safeAddress={
-          editingTransfer
-            ? transfers.find((t) => t.transferId === editingTransfer)
-                ?.safeAddress || ''
-            : ''
-        }
-        transactionHash={
-          editingTransfer
-            ? transfers.find((t) => t.transferId === editingTransfer)
-                ?.transactionHash || ''
-            : ''
-        }
-      />
+      {session && (
+        <EditCategoryDialog
+          isOpen={!!editingTransfer}
+          onClose={handleDialogClose}
+          transferId={editingTransfer || ''}
+          currentCategoryId={
+            editingTransfer
+              ? transferCategories.find(
+                  (tc) => tc.transferId === editingTransfer
+                )?.categoryId || null
+              : null
+          }
+          currentDescription={
+            editingTransfer
+              ? transferCategories.find(
+                  (tc) => tc.transferId === editingTransfer
+                )?.description || ''
+              : ''
+          }
+          categories={categories}
+          safeAddress={
+            editingTransfer
+              ? transfers.find((t) => t.transferId === editingTransfer)
+                  ?.safeAddress || ''
+              : ''
+          }
+          transactionHash={
+            editingTransfer
+              ? transfers.find((t) => t.transferId === editingTransfer)
+                  ?.transactionHash || ''
+              : ''
+          }
+        />
+      )}
       <Table>
         <TableHeader>
           <TableRow className="h-[50px]">
-            <TableHead className="w-[60px]">Edit</TableHead>
+            {session && <TableHead className="w-[60px]">Edit</TableHead>}
             <TableHead className="w-[180px]">Safe</TableHead>
             <TableHead className="w-[200px]">Amount</TableHead>
             <TableHead className="w-[180px]">Address</TableHead>
@@ -426,15 +438,17 @@ export default function TransactionTable({
 
             return (
               <TableRow key={transfer.transferId} className="h-[50px]">
-                <TableCell className="min-h-[50px] w-[60px]">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditCategory(transfer.transferId)}
-                  >
-                    ✏️
-                  </Button>
-                </TableCell>
+                {session && (
+                  <TableCell className="min-h-[50px] w-[60px]">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditCategory(transfer.transferId)}
+                    >
+                      ✏️
+                    </Button>
+                  </TableCell>
+                )}
                 <TableCell className="min-h-[50px] w-[180px]">
                   {formatAddress(transfer.safeAddress)}
                 </TableCell>
@@ -469,7 +483,7 @@ export default function TransactionTable({
           {[...Array(ITEMS_PER_PAGE - paginatedTransfers.length)].map(
             (_, i) => (
               <TableRow key={`empty-${i}`} className="h-[50px]">
-                <TableCell className="min-h-[50px] w-[60px]" />
+                {session && <TableCell className="min-h-[50px] w-[60px]" />}
                 <TableCell className="min-h-[50px] w-[180px]" />
                 <TableCell className="min-h-[50px] w-[200px]" />
                 <TableCell className="min-h-[50px] w-[180px]" />
