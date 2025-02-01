@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
 import { EditCategoryDialog } from '@/components/EditCategoryDialog'
@@ -71,6 +72,56 @@ function Pagination({
 }
 
 const ITEMS_PER_PAGE = 20
+
+interface TransactionDirectionAmountProps {
+  isOutgoing: boolean
+  transactionHash: string
+  amount: string
+  tokenSymbol: string
+  tokenDecimals: number
+}
+
+const TransactionDirectionAmount = ({
+  isOutgoing,
+  transactionHash,
+  amount,
+  tokenSymbol,
+  tokenDecimals,
+}: TransactionDirectionAmountProps) => {
+  const formattedAmount =
+    tokenSymbol === 'ETH' || tokenSymbol === 'WETH' || !tokenSymbol
+      ? `${(Number(amount) / Math.pow(10, 18)).toLocaleString(undefined, {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })} ${tokenSymbol || 'ETH'}`
+      : `${(Number(amount) / Math.pow(10, tokenDecimals || 18)).toLocaleString(
+          undefined,
+          {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          }
+        )} ${tokenSymbol}`
+
+  return (
+    <div className="flex items-center gap-2">
+      <a
+        href={`https://etherscan.io/tx/${transactionHash}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="cursor-pointer hover:text-blue-500"
+        title="View on Etherscan"
+      >
+        <Image
+          src={isOutgoing ? '/img/out-arrow.svg' : '/img/in-arrow.svg'}
+          alt={isOutgoing ? 'Outgoing transaction' : 'Incoming transaction'}
+          width={32}
+          height={32}
+        />
+      </a>
+      <span>{formattedAmount}</span>
+    </div>
+  )
+}
 
 export default function TransactionTable({
   transfers,
@@ -175,7 +226,7 @@ export default function TransactionTable({
             <TableRow>
               <TableHead>Edit</TableHead>
               <TableHead>Safe</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Address</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead>Category</TableHead>
@@ -259,9 +310,9 @@ export default function TransactionTable({
           <TableRow>
             <TableHead>Edit</TableHead>
             <TableHead>Safe</TableHead>
-            <TableHead>Action</TableHead>
+            <TableHead>Amount</TableHead>
             <TableHead>Address</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
+
             <TableHead>Category</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Date</TableHead>
@@ -292,41 +343,20 @@ export default function TransactionTable({
                     ✏️
                   </Button>
                 </TableCell>
-                <TableCell className="font-mono">
-                  {formatAddress(transfer.safeAddress)}
+                <TableCell>{formatAddress(transfer.safeAddress)}</TableCell>
+                <TableCell>
+                  <TransactionDirectionAmount
+                    isOutgoing={isOutgoing}
+                    transactionHash={transfer.transactionHash}
+                    amount={transfer.value || '0'}
+                    tokenSymbol={transfer.tokenSymbol || ''}
+                    tokenDecimals={transfer.tokenDecimals || 18}
+                  />
                 </TableCell>
-                <TableCell className="font-mono">
-                  <a
-                    href={`https://etherscan.io/tx/${transfer.transactionHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-pointer hover:text-blue-500"
-                    title="View on Etherscan"
-                  >
-                    {isOutgoing ? '→' : '←'}
-                  </a>
-                </TableCell>
-                <TableCell className="font-mono" title={counterpartyAddress}>
+                <TableCell title={counterpartyAddress}>
                   {formatAddress(counterpartyAddress)}
                 </TableCell>
-                <TableCell className="text-right">
-                  {transfer.tokenSymbol === 'ETH' ||
-                  transfer.tokenSymbol === 'WETH' ||
-                  !transfer.tokenSymbol
-                    ? `${(
-                        Number(transfer.value) / Math.pow(10, 18)
-                      ).toLocaleString(undefined, {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1,
-                      })} ${transfer.tokenSymbol || 'ETH'}`
-                    : `${(
-                        Number(transfer.value) /
-                        Math.pow(10, transfer.tokenDecimals || 18)
-                      ).toLocaleString(undefined, {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      })} ${transfer.tokenSymbol}`}
-                </TableCell>
+
                 <TableCell className="whitespace-nowrap font-medium">
                   {categoryName}
                 </TableCell>
@@ -334,7 +364,7 @@ export default function TransactionTable({
                   {description}
                 </TableCell>
                 <TableCell>
-                  {format(new Date(transfer.executionDate), 'd MMM yyyy')}
+                  {format(new Date(transfer.executionDate), 'MMM d, yyyy')}
                 </TableCell>
               </TableRow>
             )
