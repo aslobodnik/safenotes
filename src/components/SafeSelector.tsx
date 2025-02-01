@@ -28,7 +28,7 @@ export default function SafeSelector({
       value={safeAddress === null ? 'all' : safeAddress}
       onValueChange={handleChange}
     >
-      <SelectTrigger className="min-w-[300px] bg-white text-lg font-bold">
+      <SelectTrigger className="min-w-[300px] bg-neutral-50 py-5 text-lg font-bold">
         <SelectValue placeholder="All Safes" />
       </SelectTrigger>
       <SelectContent>
