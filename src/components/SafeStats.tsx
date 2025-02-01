@@ -129,10 +129,12 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
       </HoverCard>
 
       <HoverCard openDelay={200} closeDelay={300}>
-        <HoverCardTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-200 px-4 py-2 pr-8">
+        <HoverCardTrigger className="inline-flex min-w-[180px] cursor-pointer items-center justify-between gap-2 rounded-md border border-neutral-200 px-4 py-2">
           <Wallet size={24} className="text-neutral-700" />
-          <span className="text-sm text-neutral-900">{totalUSDCBalance}</span>
-          <span className="text-sm">USDC</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-neutral-900">{totalUSDCBalance}</span>
+            <span className="text-sm">USDC</span>
+          </div>
         </HoverCardTrigger>
         <HoverCardContent className="w-[300px]" align="start" sideOffset={4}>
           <div className="space-y-2">

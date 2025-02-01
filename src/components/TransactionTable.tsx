@@ -49,7 +49,7 @@ function Pagination({
   onPageChange,
 }: PaginationProps) {
   return (
-    <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
       <div className="flex flex-1 justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
@@ -277,43 +277,43 @@ export default function TransactionTable({
       <div className="rounded-lg border">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Edit</TableHead>
-              <TableHead>Safe</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Date</TableHead>
+            <TableRow className="h-[50px]">
+              <TableHead className="w-[60px]">Edit</TableHead>
+              <TableHead className="w-[180px]">Safe</TableHead>
+              <TableHead className="w-[200px]">Amount</TableHead>
+              <TableHead className="w-[180px]">Address</TableHead>
+              <TableHead className="w-[140px]">Category</TableHead>
+              <TableHead className="hidden w-[200px] md:table-cell">
+                Description
+              </TableHead>
+              <TableHead className="hidden w-[140px] md:table-cell">
+                Date
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {[...Array(5)].map((_, i) => (
-              <TableRow key={i} className="animate-pulse">
-                <TableCell>
-                  <div className="h-4 w-8 rounded bg-gray-200"></div>
+            {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
+              <TableRow key={i} className="h-[50px] animate-pulse">
+                <TableCell className="min-h-[50px] w-[60px]">
+                  <div className="h-8 w-8 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell>
-                  <div className="h-4 w-24 rounded bg-gray-200"></div>
+                <TableCell className="min-h-[50px] w-[180px]">
+                  <div className="h-4 w-24 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell>
-                  <div className="h-4 w-4 rounded bg-gray-200"></div>
+                <TableCell className="min-h-[50px] w-[200px]">
+                  <div className="h-4 w-32 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell>
-                  <div className="h-4 w-32 rounded bg-gray-200"></div>
+                <TableCell className="min-h-[50px] w-[180px]">
+                  <div className="h-4 w-24 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell className="text-right">
-                  <div className="ml-auto h-4 w-20 rounded bg-gray-200"></div>
+                <TableCell className="min-h-[50px] w-[140px]">
+                  <div className="h-4 w-20 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell>
-                  <div className="h-4 w-16 rounded bg-gray-200"></div>
+                <TableCell className="hidden min-h-[50px] w-[200px] md:table-cell">
+                  <div className="h-4 w-40 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell>
-                  <div className="h-4 w-40 rounded bg-gray-200"></div>
-                </TableCell>
-                <TableCell>
-                  <div className="h-4 w-24 rounded bg-gray-200"></div>
+                <TableCell className="hidden min-h-[50px] w-[140px] md:table-cell">
+                  <div className="h-4 w-24 rounded bg-gray-200" />
                 </TableCell>
               </TableRow>
             ))}
@@ -324,7 +324,43 @@ export default function TransactionTable({
   }
 
   if (!transfers || transfers.length === 0) {
-    return <div className="text-muted-foreground">No transfers found</div>
+    return (
+      <div className="rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow className="h-[50px]">
+              <TableHead className="w-[60px]">Edit</TableHead>
+              <TableHead className="w-[180px]">Safe</TableHead>
+              <TableHead className="w-[200px]">Amount</TableHead>
+              <TableHead className="w-[180px]">Address</TableHead>
+              <TableHead className="w-[140px]">Category</TableHead>
+              <TableHead className="hidden w-[200px] md:table-cell">
+                Description
+              </TableHead>
+              <TableHead className="hidden w-[140px] md:table-cell">
+                Date
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
+              <TableRow key={i} className="h-[50px]">
+                <TableCell className="w-[60px]" />
+                <TableCell className="w-[180px]" />
+                <TableCell className="w-[200px]" />
+                <TableCell className="w-[180px]" />
+                <TableCell className="w-[140px]" />
+                <TableCell className="hidden w-[200px] md:table-cell" />
+                <TableCell className="hidden w-[140px] md:table-cell" />
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="text-muted-foreground">No transfers found</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -361,7 +397,7 @@ export default function TransactionTable({
       />
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="h-[50px]">
             <TableHead className="w-[60px]">Edit</TableHead>
             <TableHead className="w-[180px]">Safe</TableHead>
             <TableHead className="w-[200px]">Amount</TableHead>
@@ -385,13 +421,12 @@ export default function TransactionTable({
             const counterpartyAddress = isOutgoing
               ? transfer.toAddress
               : transfer.fromAddress
-
             const categoryName = getCategoryName(transfer.transferId)
             const description = getCategoryDescription(transfer.transferId)
 
             return (
-              <TableRow key={transfer.transferId}>
-                <TableCell className="w-[60px]">
+              <TableRow key={transfer.transferId} className="h-[50px]">
+                <TableCell className="min-h-[50px] w-[60px]">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -400,10 +435,10 @@ export default function TransactionTable({
                     ✏️
                   </Button>
                 </TableCell>
-                <TableCell className="w-[180px]">
+                <TableCell className="min-h-[50px] w-[180px]">
                   {formatAddress(transfer.safeAddress)}
                 </TableCell>
-                <TableCell className="w-[200px]">
+                <TableCell className="min-h-[50px] w-[200px]">
                   <TransactionDirectionAmount
                     isOutgoing={isOutgoing}
                     transactionHash={transfer.transactionHash}
@@ -412,21 +447,38 @@ export default function TransactionTable({
                     tokenDecimals={transfer.tokenDecimals || 18}
                   />
                 </TableCell>
-                <TableCell className="w-[180px]" title={counterpartyAddress}>
+                <TableCell
+                  className="min-h-[50px] w-[180px]"
+                  title={counterpartyAddress}
+                >
                   {formatAddress(counterpartyAddress)}
                 </TableCell>
-                <TableCell className="w-[140px] whitespace-nowrap font-medium">
+                <TableCell className="min-h-[50px] w-[140px] whitespace-nowrap font-medium">
                   {categoryName}
                 </TableCell>
-                <TableCell className="hidden w-[200px] text-muted-foreground md:table-cell">
+                <TableCell className="hidden min-h-[50px] w-[200px] text-muted-foreground md:table-cell">
                   {description}
                 </TableCell>
-                <TableCell className="hidden w-[140px] md:table-cell">
+                <TableCell className="hidden min-h-[50px] w-[140px] md:table-cell">
                   {format(new Date(transfer.executionDate), 'MMM d, yyyy')}
                 </TableCell>
               </TableRow>
             )
           })}
+          {/* Empty rows */}
+          {[...Array(ITEMS_PER_PAGE - paginatedTransfers.length)].map(
+            (_, i) => (
+              <TableRow key={`empty-${i}`} className="h-[50px]">
+                <TableCell className="min-h-[50px] w-[60px]" />
+                <TableCell className="min-h-[50px] w-[180px]" />
+                <TableCell className="min-h-[50px] w-[200px]" />
+                <TableCell className="min-h-[50px] w-[180px]" />
+                <TableCell className="min-h-[50px] w-[140px]" />
+                <TableCell className="hidden min-h-[50px] w-[200px] md:table-cell" />
+                <TableCell className="hidden min-h-[50px] w-[140px] md:table-cell" />
+              </TableRow>
+            )
+          )}
         </TableBody>
       </Table>
 
