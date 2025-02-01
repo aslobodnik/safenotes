@@ -1,4 +1,7 @@
 import { format } from 'date-fns'
+
+import { useSession } from 'next-auth/react'
+
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
@@ -184,6 +187,7 @@ export default function TransactionTable({
   isLoading,
   categories,
 }: TransactionTableProps) {
+  const { data: session } = useSession()
   const [currentPage, setCurrentPage] = useState(1)
   const [ensNames, setEnsNames] = useState<AddressMap>({})
   const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
@@ -242,6 +246,10 @@ export default function TransactionTable({
   }
 
   const handleEditCategory = (transferId: string) => {
+    if (!session) {
+      // Optionally add a toast notification here
+      return
+    }
     setEditingTransfer(transferId)
   }
 
@@ -278,7 +286,9 @@ export default function TransactionTable({
         <Table>
           <TableHeader>
             <TableRow className="h-[50px]">
-              <TableHead className="w-[60px]">Edit</TableHead>
+design
+              {session && <TableHead className="w-[60px]">Edit</TableHead>}
+
               <TableHead className="w-[180px]">Safe</TableHead>
               <TableHead className="w-[200px]">Amount</TableHead>
               <TableHead className="w-[180px]">Address</TableHead>
@@ -294,25 +304,29 @@ export default function TransactionTable({
           <TableBody>
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px] animate-pulse">
-                <TableCell className="min-h-[50px] w-[60px]">
-                  <div className="h-8 w-8 rounded bg-gray-200" />
-                </TableCell>
-                <TableCell className="min-h-[50px] w-[180px]">
+
+                {session && (
+                  <TableCell className="w-[60px]">
+                    <div className="h-8 w-8 rounded bg-gray-200" />
+                  </TableCell>
+                )}
+                <TableCell className="w-[180px]">
                   <div className="h-4 w-24 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell className="min-h-[50px] w-[200px]">
+                <TableCell className="w-[200px]">
                   <div className="h-4 w-32 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell className="min-h-[50px] w-[180px]">
+                <TableCell className="w-[180px]">
                   <div className="h-4 w-24 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell className="min-h-[50px] w-[140px]">
+                <TableCell className="w-[140px]">
                   <div className="h-4 w-20 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell className="hidden min-h-[50px] w-[200px] md:table-cell">
+                <TableCell className="hidden w-[200px] md:table-cell">
                   <div className="h-4 w-40 rounded bg-gray-200" />
                 </TableCell>
-                <TableCell className="hidden min-h-[50px] w-[140px] md:table-cell">
+                <TableCell className="hidden w-[140px] md:table-cell">
+
                   <div className="h-4 w-24 rounded bg-gray-200" />
                 </TableCell>
               </TableRow>
@@ -329,7 +343,9 @@ export default function TransactionTable({
         <Table>
           <TableHeader>
             <TableRow className="h-[50px]">
-              <TableHead className="w-[60px]">Edit</TableHead>
+
+              {session && <TableHead className="w-[60px]">Edit</TableHead>}
+
               <TableHead className="w-[180px]">Safe</TableHead>
               <TableHead className="w-[200px]">Amount</TableHead>
               <TableHead className="w-[180px]">Address</TableHead>
@@ -345,7 +361,9 @@ export default function TransactionTable({
           <TableBody>
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px]">
-                <TableCell className="w-[60px]" />
+
+                {session && <TableCell className="w-[60px]" />}
+
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[200px]" />
                 <TableCell className="w-[180px]" />
@@ -365,40 +383,46 @@ export default function TransactionTable({
 
   return (
     <div className="rounded-lg border">
-      <EditCategoryDialog
-        isOpen={!!editingTransfer}
-        onClose={handleDialogClose}
-        transferId={editingTransfer || ''}
-        currentCategoryId={
-          editingTransfer
-            ? transferCategories.find((tc) => tc.transferId === editingTransfer)
-                ?.categoryId || null
-            : null
-        }
-        currentDescription={
-          editingTransfer
-            ? transferCategories.find((tc) => tc.transferId === editingTransfer)
-                ?.description || ''
-            : ''
-        }
-        categories={categories}
-        safeAddress={
-          editingTransfer
-            ? transfers.find((t) => t.transferId === editingTransfer)
-                ?.safeAddress || ''
-            : ''
-        }
-        transactionHash={
-          editingTransfer
-            ? transfers.find((t) => t.transferId === editingTransfer)
-                ?.transactionHash || ''
-            : ''
-        }
-      />
+
+      {session && (
+        <EditCategoryDialog
+          isOpen={!!editingTransfer}
+          onClose={handleDialogClose}
+          transferId={editingTransfer || ''}
+          currentCategoryId={
+            editingTransfer
+              ? transferCategories.find(
+                  (tc) => tc.transferId === editingTransfer
+                )?.categoryId || null
+              : null
+          }
+          currentDescription={
+            editingTransfer
+              ? transferCategories.find(
+                  (tc) => tc.transferId === editingTransfer
+                )?.description || ''
+              : ''
+          }
+          categories={categories}
+          safeAddress={
+            editingTransfer
+              ? transfers.find((t) => t.transferId === editingTransfer)
+                  ?.safeAddress || ''
+              : ''
+          }
+          transactionHash={
+            editingTransfer
+              ? transfers.find((t) => t.transferId === editingTransfer)
+                  ?.transactionHash || ''
+              : ''
+          }
+        />
+      )}
       <Table>
         <TableHeader>
           <TableRow className="h-[50px]">
-            <TableHead className="w-[60px]">Edit</TableHead>
+            {session && <TableHead className="w-[60px]">Edit</TableHead>}
+
             <TableHead className="w-[180px]">Safe</TableHead>
             <TableHead className="w-[200px]">Amount</TableHead>
             <TableHead className="w-[180px]">Address</TableHead>
@@ -426,19 +450,23 @@ export default function TransactionTable({
 
             return (
               <TableRow key={transfer.transferId} className="h-[50px]">
-                <TableCell className="min-h-[50px] w-[60px]">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditCategory(transfer.transferId)}
-                  >
-                    ✏️
-                  </Button>
-                </TableCell>
-                <TableCell className="min-h-[50px] w-[180px]">
+
+                {session && (
+                  <TableCell className="w-[60px]">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditCategory(transfer.transferId)}
+                    >
+                      ✏️
+                    </Button>
+                  </TableCell>
+                )}
+                <TableCell className="w-[180px]">
                   {formatAddress(transfer.safeAddress)}
                 </TableCell>
-                <TableCell className="min-h-[50px] w-[200px]">
+                <TableCell className="w-[200px]">
+
                   <TransactionDirectionAmount
                     isOutgoing={isOutgoing}
                     transactionHash={transfer.transactionHash}
@@ -447,19 +475,18 @@ export default function TransactionTable({
                     tokenDecimals={transfer.tokenDecimals || 18}
                   />
                 </TableCell>
-                <TableCell
-                  className="min-h-[50px] w-[180px]"
-                  title={counterpartyAddress}
-                >
+
+                <TableCell className="w-[180px]" title={counterpartyAddress}>
                   {formatAddress(counterpartyAddress)}
                 </TableCell>
-                <TableCell className="min-h-[50px] w-[140px] whitespace-nowrap font-medium">
+                <TableCell className="w-[140px] whitespace-nowrap font-medium">
                   {categoryName}
                 </TableCell>
-                <TableCell className="hidden min-h-[50px] w-[200px] text-muted-foreground md:table-cell">
+                <TableCell className="hidden w-[200px] text-muted-foreground md:table-cell">
                   {description}
                 </TableCell>
-                <TableCell className="hidden min-h-[50px] w-[140px] md:table-cell">
+                <TableCell className="hidden w-[140px] md:table-cell">
+
                   {format(new Date(transfer.executionDate), 'MMM d, yyyy')}
                 </TableCell>
               </TableRow>
@@ -469,13 +496,15 @@ export default function TransactionTable({
           {[...Array(ITEMS_PER_PAGE - paginatedTransfers.length)].map(
             (_, i) => (
               <TableRow key={`empty-${i}`} className="h-[50px]">
-                <TableCell className="min-h-[50px] w-[60px]" />
-                <TableCell className="min-h-[50px] w-[180px]" />
-                <TableCell className="min-h-[50px] w-[200px]" />
-                <TableCell className="min-h-[50px] w-[180px]" />
-                <TableCell className="min-h-[50px] w-[140px]" />
-                <TableCell className="hidden min-h-[50px] w-[200px] md:table-cell" />
-                <TableCell className="hidden min-h-[50px] w-[140px] md:table-cell" />
+
+                {session && <TableCell className="w-[60px]" />}
+                <TableCell className="w-[180px]" />
+                <TableCell className="w-[200px]" />
+                <TableCell className="w-[180px]" />
+                <TableCell className="w-[140px]" />
+                <TableCell className="hidden w-[200px] md:table-cell" />
+                <TableCell className="hidden w-[140px] md:table-cell" />
+
               </TableRow>
             )
           )}
