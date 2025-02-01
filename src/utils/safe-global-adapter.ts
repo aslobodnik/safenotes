@@ -1,5 +1,3 @@
-import type { TransferItem } from '@/db/schema'
-
 export interface SafeTransferResponse {
   count: number
   results: SafeTransfer[]

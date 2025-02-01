@@ -1,10 +1,9 @@
-import { desc, eq, inArray, sql } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { TransferItem, safes, transferCategories, transfers } from '@/db/schema'
+import { transferCategories, transfers } from '@/db/schema'
 import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
 import {
-  SafeTransfer,
   fetchSafeTransfers,
   filterTrustedTransfers,
 } from '@/utils/safe-global-adapter'
