@@ -9,7 +9,7 @@ import { api } from '@/utils/trpc'
 
 interface SafeSelectorProps {
   safeAddress: string | null
-  onChange: (value: string) => void
+  onChange: (value: string | null) => void
 }
 
 export default function SafeSelector({
@@ -18,10 +18,15 @@ export default function SafeSelector({
 }: SafeSelectorProps) {
   const { data: safes, isLoading } = api.safes.getAllSafesWithEns.useQuery()
 
+  const handleChange = (value: string) => {
+    // Convert "all" back to null when selected
+    onChange(value === 'all' ? null : value)
+  }
+
   return (
     <Select
       value={safeAddress === null ? 'all' : safeAddress}
-      onValueChange={onChange}
+      onValueChange={handleChange}
     >
       <SelectTrigger className="min-w-[300px] bg-white text-lg font-bold">
         <SelectValue placeholder="All Safes" />
