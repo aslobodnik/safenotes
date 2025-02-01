@@ -125,7 +125,7 @@ function Pagination({
   )
 }
 
-const ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = 10
 
 interface TransactionDirectionAmountProps {
   isOutgoing: boolean
@@ -362,14 +362,17 @@ export default function TransactionTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Edit</TableHead>
-            <TableHead>Safe</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Address</TableHead>
-
-            <TableHead>Category</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Date</TableHead>
+            <TableHead className="w-[60px]">Edit</TableHead>
+            <TableHead className="w-[180px]">Safe</TableHead>
+            <TableHead className="w-[200px]">Amount</TableHead>
+            <TableHead className="w-[180px]">Address</TableHead>
+            <TableHead className="w-[140px]">Category</TableHead>
+            <TableHead className="hidden w-[200px] md:table-cell">
+              Description
+            </TableHead>
+            <TableHead className="hidden w-[140px] md:table-cell">
+              Date
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -388,7 +391,7 @@ export default function TransactionTable({
 
             return (
               <TableRow key={transfer.transferId}>
-                <TableCell>
+                <TableCell className="w-[60px]">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -397,8 +400,10 @@ export default function TransactionTable({
                     ✏️
                   </Button>
                 </TableCell>
-                <TableCell>{formatAddress(transfer.safeAddress)}</TableCell>
-                <TableCell>
+                <TableCell className="w-[180px]">
+                  {formatAddress(transfer.safeAddress)}
+                </TableCell>
+                <TableCell className="w-[200px]">
                   <TransactionDirectionAmount
                     isOutgoing={isOutgoing}
                     transactionHash={transfer.transactionHash}
@@ -407,17 +412,16 @@ export default function TransactionTable({
                     tokenDecimals={transfer.tokenDecimals || 18}
                   />
                 </TableCell>
-                <TableCell title={counterpartyAddress}>
+                <TableCell className="w-[180px]" title={counterpartyAddress}>
                   {formatAddress(counterpartyAddress)}
                 </TableCell>
-
-                <TableCell className="whitespace-nowrap font-medium">
+                <TableCell className="w-[140px] whitespace-nowrap font-medium">
                   {categoryName}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden w-[200px] text-muted-foreground md:table-cell">
                   {description}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden w-[140px] md:table-cell">
                   {format(new Date(transfer.executionDate), 'MMM d, yyyy')}
                 </TableCell>
               </TableRow>
