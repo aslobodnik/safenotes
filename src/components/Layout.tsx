@@ -30,7 +30,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-4">
           <Link
             href="/admin"
-            className="rounded-md px-4 py-2 text-brand hover:bg-brand/10"
+            className="rounded-md py-2 text-brand transition-colors duration-300 hover:text-brand/80"
+          >
+            Home
+          </Link>
+          <Link
+            href="/admin"
+            className="rounded-md px-4 py-2 text-brand transition-colors duration-300 hover:text-brand/80"
           >
             Admin
           </Link>
