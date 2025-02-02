@@ -6,27 +6,18 @@ import { useEffect, useState } from 'react'
 
 import { EditCategoryDialog } from '@/components/EditCategoryDialog'
 import { TableSkeleton } from '@/components/TableSkeleton'
+import { TransactionTableHeader } from '@/components/transaction-table/TableHeader'
 import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import {
   type CategoryItem,
+  type SafeItem,
   type TransferCategoryItem,
   type TransferItem,
 } from '@/db/schema'
 import { truncateAddress } from '@/lib/utils'
-import { publicClient } from '@/lib/web3'
+import { type AddressMap, fetchEnsNames } from '@/utils/fetch-ens-names'
 import { api } from '@/utils/trpc'
-
-interface AddressMap {
-  [key: string]: string | null
-}
 
 interface TransactionTableProps {
   transfers: TransferItem[]
@@ -34,6 +25,7 @@ interface TransactionTableProps {
   safeAddress: string | null
   isLoading: boolean
   categories: CategoryItem[]
+  allSafes: SafeItem[]
 }
 
 interface PaginationProps {
@@ -186,55 +178,67 @@ export default function TransactionTable({
   safeAddress,
   isLoading,
   categories,
+  allSafes,
 }: TransactionTableProps) {
+  console.log(
+    `is address selected ${safeAddress} | transfers count for table ${transfers.length}`
+  )
   const { data: session } = useSession()
   const [currentPage, setCurrentPage] = useState(1)
   const [ensNames, setEnsNames] = useState<AddressMap>({})
   const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
   const utils = api.useUtils()
 
-  // Calculate pagination
-  const totalItems = transfers.length
+  // Process transfers to create rows for each safe involved
+  const processedTransfers = transfers.flatMap((transfer) => {
+    const rows: (TransferItem & { viewType: 'in' | 'out' })[] = []
+    const trackedSafeAddresses = safeAddress
+      ? new Set([safeAddress.toLowerCase()])
+      : new Set(allSafes.map((safe) => safe.address.toLowerCase()))
+
+    // Check if from address is a tracked safe
+    if (trackedSafeAddresses.has(transfer.fromAddress.toLowerCase())) {
+      rows.push({
+        ...transfer,
+        viewType: 'out',
+      })
+    }
+
+    // Check if to address is a tracked safe
+    if (trackedSafeAddresses.has(transfer.toAddress.toLowerCase())) {
+      rows.push({
+        ...transfer,
+        viewType: 'in',
+      })
+    }
+
+    return rows
+  })
+
+  // Calculate pagination based on processed transfers
+  const totalItems = processedTransfers.length
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const paginatedTransfers = transfers.slice(
+  const paginatedTransfers = processedTransfers.slice(
     startIndex,
     startIndex + ITEMS_PER_PAGE
   )
 
-  // Collect unique addresses from transfers
+  // Collect unique addresses and fetch ENS names
   useEffect(() => {
-    const fetchEnsNames = async () => {
-      const uniqueAddresses = new Set<string>()
-
+    const getEnsNames = async () => {
       if (!transfers) return
 
-      transfers.forEach((transfer) => {
-        uniqueAddresses.add(transfer.fromAddress)
-        uniqueAddresses.add(transfer.toAddress)
-      })
+      const addresses = transfers.flatMap((transfer) => [
+        transfer.fromAddress,
+        transfer.toAddress,
+      ])
 
-      const names: AddressMap = {}
-
-      // Batch resolve ENS names
-      await Promise.all(
-        Array.from(uniqueAddresses).map(async (address) => {
-          try {
-            const name = await publicClient.getEnsName({
-              address: address as `0x${string}`,
-            })
-            names[address] = name
-          } catch (err) {
-            console.error(`Failed to resolve ENS for ${address}:`, err)
-            names[address] = null
-          }
-        })
-      )
-
+      const names = await fetchEnsNames(addresses)
       setEnsNames(names)
     }
 
-    fetchEnsNames()
+    getEnsNames()
   }, [transfers])
 
   const formatAddress = (address: string) => {
@@ -281,35 +285,20 @@ export default function TransactionTable({
   }
 
   if (isLoading) {
-
     return <TableSkeleton session={!!session} />
   }
 
-  if (!transfers || transfers.length === 0) {
+  if (!processedTransfers || processedTransfers.length === 0) {
     return (
       <div className="relative rounded-lg border">
         <Table>
-          <TableHeader>
-            <TableRow className="h-[50px]">
-              {session && <TableHead className="w-[60px]">Edit</TableHead>}
-              <TableHead className="w-[180px]">Safe</TableHead>
-              <TableHead className="w-[200px] min-w-[200px]">Amount</TableHead>
-              <TableHead className="w-[180px]">Address</TableHead>
-              <TableHead className="w-[140px]">Category</TableHead>
-              <TableHead className="hidden w-[200px] md:table-cell">
-                Description
-              </TableHead>
-              <TableHead className="hidden w-[140px] md:table-cell">
-                Date
-              </TableHead>
-            </TableRow>
-          </TableHeader>
+          <TransactionTableHeader showEditColumn={!!session} />
           <TableBody>
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px]">
                 {session && <TableCell className="w-[60px]" />}
                 <TableCell className="w-[180px]" />
-                <TableCell className="w-[200px] min-w-[200px]" />
+                <TableCell className="w-[200px]" />
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[140px]" />
                 <TableCell className="hidden w-[200px] md:table-cell" />
@@ -349,41 +338,26 @@ export default function TransactionTable({
           categories={categories}
           safeAddress={
             editingTransfer
-              ? transfers.find((t) => t.transferId === editingTransfer)
+              ? processedTransfers.find((t) => t.transferId === editingTransfer)
                   ?.safeAddress || ''
               : ''
           }
           transactionHash={
             editingTransfer
-              ? transfers.find((t) => t.transferId === editingTransfer)
+              ? processedTransfers.find((t) => t.transferId === editingTransfer)
                   ?.transactionHash || ''
               : ''
           }
         />
       )}
       <Table>
-        <TableHeader>
-          <TableRow className="h-[50px]">
-            {session && <TableHead className="w-[60px]">Edit</TableHead>}
-            <TableHead className="w-[180px]">Safe</TableHead>
-            <TableHead className="w-[200px]">Amount</TableHead>
-            <TableHead className="w-[180px]">Address</TableHead>
-            <TableHead className="w-[140px]">Category</TableHead>
-            <TableHead className="hidden w-[200px] md:table-cell">
-              Description
-            </TableHead>
-            <TableHead className="hidden w-[140px] md:table-cell">
-              Date
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+        <TransactionTableHeader showEditColumn={!!session} />
         <TableBody>
           {paginatedTransfers.map((transfer) => {
-            const isOutgoing = safeAddress
-              ? transfer.fromAddress.toLowerCase() === safeAddress.toLowerCase()
-              : transfer.fromAddress.toLowerCase() ===
-                transfer.safeAddress.toLowerCase()
-
+            const isOutgoing = transfer.viewType === 'out'
+            const mainPartyAddress = isOutgoing
+              ? transfer.fromAddress
+              : transfer.toAddress
             const counterpartyAddress = isOutgoing
               ? transfer.toAddress
               : transfer.fromAddress
@@ -391,7 +365,10 @@ export default function TransactionTable({
             const description = getCategoryDescription(transfer.transferId)
 
             return (
-              <TableRow key={transfer.transferId} className="h-[50px]">
+              <TableRow
+                key={`${transfer.transferId}-${transfer.viewType}`}
+                className="h-[50px]"
+              >
                 {session && (
                   <TableCell className="w-[60px]">
                     <Button
@@ -408,7 +385,7 @@ export default function TransactionTable({
                     target="_blank"
                     href={`https://etherscan.io/address/${transfer.safeAddress}`}
                   >
-                    {formatAddress(transfer.safeAddress)}
+                    {formatAddress(mainPartyAddress)}
                   </Link>
                 </TableCell>
                 <TableCell className="w-[200px]">
@@ -420,7 +397,6 @@ export default function TransactionTable({
                     tokenDecimals={transfer.tokenDecimals || 18}
                   />
                 </TableCell>
-
                 <TableCell className="w-[180px]" title={counterpartyAddress}>
                   <Link
                     target="_blank"

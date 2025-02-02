@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { transferCategories, transfers } from '@/db/schema'
@@ -102,7 +102,10 @@ export const transfersRouter = createTRPCRouter({
         .orderBy(desc(transfers.executionDate))
 
       if (input.safeAddress) {
-        query.where(eq(transfers.safeAddress, input.safeAddress))
+        const address = input.safeAddress.toLowerCase()
+        query.where(
+          sql`LOWER(${transfers.fromAddress}) = ${address} OR LOWER(${transfers.toAddress}) = ${address}`
+        )
       }
 
       return query
