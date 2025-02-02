@@ -1,3 +1,4 @@
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { useState } from 'react'
 
@@ -5,6 +6,7 @@ import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import { SafeStats } from '@/components/SafeStats'
 import { SyncTransactionsDialog } from '@/components/SyncTransactionsDialog'
+import { TableSkeleton } from '@/components/TableSkeleton'
 import TransactionTable from '@/components/TransactionTable'
 import { Button } from '@/components/ui/button'
 import { api } from '@/utils/trpc'
@@ -12,6 +14,8 @@ import { api } from '@/utils/trpc'
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false)
+
+  const { data: session } = useSession()
 
   const {
     data: transfers,
@@ -66,20 +70,19 @@ export default function Home() {
             Sync
           </Button>
         </div>
-        {(transfersLoading ||
-          transferCategoriesLoading ||
-          categoriesLoading) && <div> transfers loading </div>}
-        {(transfersError || transferCategoriesError || categoriesError) && (
-          <div> transfers error </div>
-        )}
-        {transfers && (
+        {transfersLoading || transferCategoriesLoading || categoriesLoading ? (
+          <TableSkeleton session={!!session} />
+        ) : transfers ? (
           <TransactionTable
-            transfers={transfers || []}
+            transfers={transfers}
             transferCategories={transferCategories || []}
             categories={categories || []}
             safeAddress={selectedSafe}
             isLoading={transfersLoading || transferCategoriesLoading}
           />
+        ) : null}
+        {(transfersError || transferCategoriesError || categoriesError) && (
+          <div> transfers error </div>
         )}
         <SyncTransactionsDialog
           isOpen={isSyncDialogOpen}
