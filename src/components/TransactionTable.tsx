@@ -281,6 +281,7 @@ export default function TransactionTable({
   }
 
   if (isLoading) {
+
     return <TableSkeleton session={!!session} />
   }
 
