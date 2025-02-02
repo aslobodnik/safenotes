@@ -51,7 +51,7 @@ function Pagination({
   onPageChange,
 }: PaginationProps) {
   return (
-    <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
       <div className="flex flex-1 justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
@@ -159,8 +159,8 @@ const TransactionDirectionAmount = ({
         )} ${tokenSymbol}`
 
   return (
-    <div className="flex items-center gap-2">
-      <a
+    <div className="flex flex-col items-center gap-2 lg:flex-row">
+      <Link
         href={`https://etherscan.io/tx/${transactionHash}`}
         target="_blank"
         rel="noopener noreferrer"
@@ -173,8 +173,8 @@ const TransactionDirectionAmount = ({
           width={32}
           height={32}
         />
-      </a>
-      <span>{formattedAmount}</span>
+      </Link>
+      <span className="w-full text-center lg:text-left">{formattedAmount}</span>
     </div>
   )
 }
@@ -359,7 +359,7 @@ export default function TransactionTable({
                 {session && <TableCell className="w-[60px]" />}
 
                 <TableCell className="w-[180px]" />
-                <TableCell className="w-[200px]" />
+                <TableCell className="w-[200px] min-w-[200px]" />
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[140px]" />
                 <TableCell className="hidden w-[200px] md:table-cell" />
