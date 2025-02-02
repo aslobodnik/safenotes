@@ -52,7 +52,7 @@ export default function Home() {
           />
         </div>
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
             <SafeSelector
               safeAddress={selectedSafe}
               onChange={setSelectedSafe}
@@ -61,7 +61,7 @@ export default function Home() {
           </div>
           <Button
             onClick={() => setIsSyncDialogOpen(true)}
-            className="whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100"
+            className="hidden whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100 md:block"
           >
             Sync
           </Button>
