@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 import { EditCategoryDialog } from '@/components/EditCategoryDialog'
+import { TableSkeleton } from '@/components/TableSkeleton'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -51,7 +52,7 @@ function Pagination({
   onPageChange,
 }: PaginationProps) {
   return (
-    <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
       <div className="flex flex-1 justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
@@ -159,8 +160,8 @@ const TransactionDirectionAmount = ({
         )} ${tokenSymbol}`
 
   return (
-    <div className="flex items-center gap-2">
-      <a
+    <div className="flex flex-col items-center gap-2 lg:flex-row">
+      <Link
         href={`https://etherscan.io/tx/${transactionHash}`}
         target="_blank"
         rel="noopener noreferrer"
@@ -173,8 +174,8 @@ const TransactionDirectionAmount = ({
           width={32}
           height={32}
         />
-      </a>
-      <span>{formattedAmount}</span>
+      </Link>
+      <span className="w-full text-center lg:text-left">{formattedAmount}</span>
     </div>
   )
 }
@@ -280,69 +281,19 @@ export default function TransactionTable({
   }
 
   if (isLoading) {
-    return (
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow className="h-[50px]">
-              design
-              {session && <TableHead className="w-[60px]">Edit</TableHead>}
-              <TableHead className="w-[180px]">Safe</TableHead>
-              <TableHead className="w-[200px]">Amount</TableHead>
-              <TableHead className="w-[180px]">Address</TableHead>
-              <TableHead className="w-[140px]">Category</TableHead>
-              <TableHead className="hidden w-[200px] md:table-cell">
-                Description
-              </TableHead>
-              <TableHead className="hidden w-[140px] md:table-cell">
-                Date
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
-              <TableRow key={i} className="h-[50px] animate-pulse">
-                {session && (
-                  <TableCell className="w-[60px]">
-                    <div className="h-8 w-8 rounded bg-gray-200" />
-                  </TableCell>
-                )}
-                <TableCell className="w-[180px]">
-                  <div className="h-4 w-24 rounded bg-gray-200" />
-                </TableCell>
-                <TableCell className="w-[200px]">
-                  <div className="h-4 w-32 rounded bg-gray-200" />
-                </TableCell>
-                <TableCell className="w-[180px]">
-                  <div className="h-4 w-24 rounded bg-gray-200" />
-                </TableCell>
-                <TableCell className="w-[140px]">
-                  <div className="h-4 w-20 rounded bg-gray-200" />
-                </TableCell>
-                <TableCell className="hidden w-[200px] md:table-cell">
-                  <div className="h-4 w-40 rounded bg-gray-200" />
-                </TableCell>
-                <TableCell className="hidden w-[140px] md:table-cell">
-                  <div className="h-4 w-24 rounded bg-gray-200" />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    )
+
+    return <TableSkeleton session={!!session} />
   }
 
   if (!transfers || transfers.length === 0) {
     return (
-      <div className="rounded-lg border">
+      <div className="relative rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow className="h-[50px]">
               {session && <TableHead className="w-[60px]">Edit</TableHead>}
-
               <TableHead className="w-[180px]">Safe</TableHead>
-              <TableHead className="w-[200px]">Amount</TableHead>
+              <TableHead className="w-[200px] min-w-[200px]">Amount</TableHead>
               <TableHead className="w-[180px]">Address</TableHead>
               <TableHead className="w-[140px]">Category</TableHead>
               <TableHead className="hidden w-[200px] md:table-cell">
@@ -357,9 +308,8 @@ export default function TransactionTable({
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px]">
                 {session && <TableCell className="w-[60px]" />}
-
                 <TableCell className="w-[180px]" />
-                <TableCell className="w-[200px]" />
+                <TableCell className="w-[200px] min-w-[200px]" />
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[140px]" />
                 <TableCell className="hidden w-[200px] md:table-cell" />
@@ -415,7 +365,6 @@ export default function TransactionTable({
         <TableHeader>
           <TableRow className="h-[50px]">
             {session && <TableHead className="w-[60px]">Edit</TableHead>}
-
             <TableHead className="w-[180px]">Safe</TableHead>
             <TableHead className="w-[200px]">Amount</TableHead>
             <TableHead className="w-[180px]">Address</TableHead>

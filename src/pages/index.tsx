@@ -1,3 +1,4 @@
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { useState } from 'react'
 
@@ -5,6 +6,7 @@ import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import { SafeStats } from '@/components/SafeStats'
 import { SyncTransactionsDialog } from '@/components/SyncTransactionsDialog'
+import { TableSkeleton } from '@/components/TableSkeleton'
 import TransactionTable from '@/components/TransactionTable'
 import { Button } from '@/components/ui/button'
 import { api } from '@/utils/trpc'
@@ -12,6 +14,8 @@ import { api } from '@/utils/trpc'
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false)
+
+  const { data: session } = useSession()
 
   const {
     data: transfers,
@@ -52,7 +56,7 @@ export default function Home() {
           />
         </div>
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
             <SafeSelector
               safeAddress={selectedSafe}
               onChange={setSelectedSafe}
@@ -61,25 +65,24 @@ export default function Home() {
           </div>
           <Button
             onClick={() => setIsSyncDialogOpen(true)}
-            className="whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100"
+            className="hidden whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100 md:block"
           >
             Sync
           </Button>
         </div>
-        {(transfersLoading ||
-          transferCategoriesLoading ||
-          categoriesLoading) && <div> transfers loading </div>}
-        {(transfersError || transferCategoriesError || categoriesError) && (
-          <div> transfers error </div>
-        )}
-        {transfers && (
+        {transfersLoading || transferCategoriesLoading || categoriesLoading ? (
+          <TableSkeleton session={!!session} />
+        ) : transfers ? (
           <TransactionTable
-            transfers={transfers || []}
+            transfers={transfers}
             transferCategories={transferCategories || []}
             categories={categories || []}
             safeAddress={selectedSafe}
             isLoading={transfersLoading || transferCategoriesLoading}
           />
+        ) : null}
+        {(transfersError || transferCategoriesError || categoriesError) && (
+          <div> transfers error </div>
         )}
         <SyncTransactionsDialog
           isOpen={isSyncDialogOpen}
