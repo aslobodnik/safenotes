@@ -37,6 +37,24 @@ export default function Home() {
     isError: categoriesError,
   } = api.categories.getAll.useQuery()
 
+  const {
+    data: allSafes,
+    isLoading: allSafesLoading,
+    isError: allSafesError,
+  } = api.safes.getAllSafes.useQuery()
+
+  const isLoading =
+    transfersLoading ||
+    transferCategoriesLoading ||
+    categoriesLoading ||
+    allSafesLoading
+
+  const isError =
+    transfersError ||
+    transferCategoriesError ||
+    categoriesError ||
+    allSafesError
+
   return (
     <Layout>
       <div className="space-y-4">
@@ -70,7 +88,7 @@ export default function Home() {
             Sync
           </Button>
         </div>
-        {transfersLoading || transferCategoriesLoading || categoriesLoading ? (
+        {isLoading ? (
           <TableSkeleton session={!!session} />
         ) : transfers ? (
           <TransactionTable
@@ -78,12 +96,11 @@ export default function Home() {
             transferCategories={transferCategories || []}
             categories={categories || []}
             safeAddress={selectedSafe}
-            isLoading={transfersLoading || transferCategoriesLoading}
+            isLoading={isLoading}
+            allSafes={allSafes || []}
           />
         ) : null}
-        {(transfersError || transferCategoriesError || categoriesError) && (
-          <div> transfers error </div>
-        )}
+        {isError && <div> transfers error </div>}
         <SyncTransactionsDialog
           isOpen={isSyncDialogOpen}
           onClose={() => setIsSyncDialogOpen(false)}
