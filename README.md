@@ -1,3 +1,3 @@
 # SafeNotes
 
-Annonate transcations. Share publicly. Yes.
+Annonate transcations. 
