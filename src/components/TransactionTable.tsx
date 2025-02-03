@@ -408,9 +408,13 @@ export default function TransactionTable({
                 <TableCell className="w-[140px] whitespace-nowrap font-medium">
                   {categoryName}
                 </TableCell>
-                <TableCell className="hidden w-[200px] text-muted-foreground md:table-cell">
+                <TableCell
+                  className="hidden max-w-[200px] cursor-pointer overflow-hidden truncate text-ellipsis whitespace-nowrap text-muted-foreground md:table-cell"
+                  title={description}
+                >
                   {description}
                 </TableCell>
+
                 <TableCell className="hidden w-[140px] md:table-cell">
                   {format(new Date(transfer.executionDate), 'MMM d, yyyy')}
                 </TableCell>
