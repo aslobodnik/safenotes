@@ -34,12 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           >
             Home
           </Link>
-          <Link
-            href="/admin"
-            className="rounded-md px-4 py-2 text-brand transition-colors duration-300 hover:text-brand/80"
-          >
-            Admin
-          </Link>
+
           <ConnectButton />
         </div>
       </nav>
