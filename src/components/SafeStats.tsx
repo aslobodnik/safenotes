@@ -111,7 +111,7 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
           <Users size={24} className="text-neutral-700" />
           <span className="text-sm text-neutral-900">Signers</span>
           <span className="">
-            ({signersData?.owners?.length || 0}/{signersData?.threshold || 0})
+            ({signersData?.threshold || 0}/{signersData?.owners?.length || 0})
           </span>
         </HoverCardTrigger>
         <HoverCardContent className="w-[300px]" align="start" sideOffset={4}>
