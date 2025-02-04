@@ -1,3 +1,3 @@
 # SafeNotes
 
-Annonate transcations. 
+Annonate transcations
