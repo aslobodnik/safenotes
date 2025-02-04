@@ -9,13 +9,13 @@ import {
 
 const ITEMS_PER_PAGE = 10
 
-export function TableSkeleton({ session }: { session: boolean }) {
+export function TableSkeleton({ isSigner }: { isSigner: boolean }) {
   return (
     <div className="rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow className="h-[50px]">
-            {session && <TableHead className="w-[60px]">Edit</TableHead>}
+            {isSigner && <TableHead className="w-[60px]">Edit</TableHead>}
             <TableHead className="w-[180px]">Safe</TableHead>
             <TableHead className="w-[200px] min-w-[200px]">Amount</TableHead>
             <TableHead className="w-[180px]">Address</TableHead>
@@ -31,7 +31,7 @@ export function TableSkeleton({ session }: { session: boolean }) {
         <TableBody>
           {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
             <TableRow key={i} className="h-[50px]">
-              {session && (
+              {isSigner && (
                 <TableCell className="w-[60px]">
                   <div className="h-8 w-8 animate-pulse rounded bg-neutral-200" />
                 </TableCell>

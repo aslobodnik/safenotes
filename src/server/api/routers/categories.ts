@@ -2,14 +2,18 @@ import { asc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { categories, transferCategories } from '@/db/schema'
-import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
+import {
+  adminProcedure,
+  createTRPCRouter,
+  publicProcedure,
+} from '@/server/api/trpc'
 
 export const categoriesRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.select().from(categories).orderBy(asc(categories.name))
   }),
 
-  create: publicProcedure
+  create: adminProcedure
     .input(
       z.object({
         name: z.string().min(1).trim(),
@@ -36,7 +40,7 @@ export const categoriesRouter = createTRPCRouter({
       }
     }),
 
-  delete: publicProcedure
+  delete: adminProcedure
     .input(
       z.object({
         id: z.string().uuid(),

@@ -8,11 +8,13 @@
  */
 import { TRPCError, initTRPC } from '@trpc/server'
 import { type CreateNextContextOptions } from '@trpc/server/adapters/next'
-import { type Session } from 'next-auth'
+import { type Session, getServerSession } from 'next-auth'
 import superjson from 'superjson'
 import { ZodError } from 'zod'
 
 import { db } from '@/db'
+import { adminAddresses } from '@/lib/auth'
+import { getAuthOptions } from '@/pages/api/auth/[...nextauth]'
 
 /**
  * TODO: Add auth
@@ -56,10 +58,9 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts
-  console.log('createTRPCContext', req, res)
+  const session = await getServerSession(req, res, getAuthOptions(req))
 
-  // TODO: Add auth
-  return createInnerTRPCContext({ session: null })
+  return createInnerTRPCContext({ session })
 }
 
 /**
@@ -151,6 +152,26 @@ export const protectedProcedure = t.procedure
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' })
     }
+    return next({
+      ctx: {
+        // infers the `session` as non-nullable
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    })
+  })
+
+// Protected procedure for global admin users
+export const adminProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session || !ctx.session.user?.name) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' })
+    }
+
+    if (!adminAddresses.includes(ctx.session.user.name)) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' })
+    }
+
     return next({
       ctx: {
         // infers the `session` as non-nullable
