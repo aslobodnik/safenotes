@@ -89,7 +89,7 @@ export default function Home() {
           </Button>
         </div>
         {isLoading ? (
-          <TableSkeleton isAdmin={!!session} />
+          <TableSkeleton isSigner={!!session} />
         ) : transfers ? (
           <TransactionTable
             transfers={transfers}
