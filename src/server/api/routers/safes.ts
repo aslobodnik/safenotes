@@ -4,7 +4,11 @@ import { z } from 'zod'
 
 import { safes } from '@/db/schema'
 import { publicClient } from '@/lib/web3'
-import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
+import {
+  adminProcedure,
+  createTRPCRouter,
+  publicProcedure,
+} from '@/server/api/trpc'
 
 export const safesRouter = createTRPCRouter({
   getAllSafes: publicProcedure.query(async ({ ctx }) => {
@@ -30,7 +34,7 @@ export const safesRouter = createTRPCRouter({
     return safesWithEns
   }),
 
-  create: publicProcedure
+  create: adminProcedure
     .input(
       z.object({
         address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
@@ -44,7 +48,7 @@ export const safesRouter = createTRPCRouter({
       return ctx.db.select().from(safes)
     }),
 
-  delete: publicProcedure
+  delete: adminProcedure
     .input(
       z.object({
         address: z.string(),
@@ -55,7 +59,7 @@ export const safesRouter = createTRPCRouter({
       return ctx.db.select().from(safes)
     }),
 
-  softDelete: publicProcedure
+  softDelete: adminProcedure
     .input(
       z.object({
         address: z.string(),
@@ -75,7 +79,7 @@ export const safesRouter = createTRPCRouter({
       }
     }),
 
-  restore: publicProcedure
+  restore: adminProcedure
     .input(
       z.object({
         address: z.string(),

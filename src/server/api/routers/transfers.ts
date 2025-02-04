@@ -2,7 +2,11 @@ import { desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { transferCategories, transfers } from '@/db/schema'
-import { createTRPCRouter, publicProcedure } from '@/server/api/trpc'
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from '@/server/api/trpc'
 import {
   fetchSafeTransfers,
   filterTrustedTransfers,
@@ -110,7 +114,7 @@ export const transfersRouter = createTRPCRouter({
 
       return query
     }),
-  updateCategory: publicProcedure
+  updateCategory: protectedProcedure
     .input(
       z.object({
         transferId: z.string(),

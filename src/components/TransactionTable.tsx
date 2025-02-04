@@ -15,6 +15,7 @@ import {
   type TransferCategoryItem,
   type TransferItem,
 } from '@/db/schema'
+import { adminAddresses } from '@/lib/auth'
 import { truncateAddress } from '@/lib/utils'
 import { type AddressMap, fetchEnsNames } from '@/utils/fetch-ens-names'
 import { api } from '@/utils/trpc'
@@ -184,6 +185,7 @@ export default function TransactionTable({
     `is address selected ${safeAddress} | transfers count for table ${transfers.length}`
   )
   const { data: session } = useSession()
+  const isAdmin = adminAddresses.includes(session?.user?.name || '')
   const [currentPage, setCurrentPage] = useState(1)
   const [ensNames, setEnsNames] = useState<AddressMap>({})
   const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
@@ -285,18 +287,18 @@ export default function TransactionTable({
   }
 
   if (isLoading) {
-    return <TableSkeleton session={!!session} />
+    return <TableSkeleton isAdmin={isAdmin} />
   }
 
   if (!processedTransfers || processedTransfers.length === 0) {
     return (
       <div className="relative rounded-lg border">
         <Table>
-          <TransactionTableHeader showEditColumn={!!session} />
+          <TransactionTableHeader showEditColumn={isAdmin} />
           <TableBody>
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px]">
-                {session && <TableCell className="w-[60px]" />}
+                {isAdmin && <TableCell className="w-[60px]" />}
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[200px]" />
                 <TableCell className="w-[180px]" />
@@ -316,7 +318,7 @@ export default function TransactionTable({
 
   return (
     <div className="rounded-lg border">
-      {session && (
+      {isAdmin && (
         <EditCategoryDialog
           isOpen={!!editingTransfer}
           onClose={handleDialogClose}
@@ -351,7 +353,7 @@ export default function TransactionTable({
         />
       )}
       <Table>
-        <TransactionTableHeader showEditColumn={!!session} />
+        <TransactionTableHeader showEditColumn={isAdmin} />
         <TableBody>
           {paginatedTransfers.map((transfer) => {
             const isOutgoing = transfer.viewType === 'out'
@@ -369,7 +371,7 @@ export default function TransactionTable({
                 key={`${transfer.transferId}-${transfer.viewType}`}
                 className="h-[50px]"
               >
-                {session && (
+                {isAdmin && (
                   <TableCell className="w-[60px]">
                     <Button
                       variant="ghost"
@@ -430,7 +432,7 @@ export default function TransactionTable({
           {[...Array(ITEMS_PER_PAGE - paginatedTransfers.length)].map(
             (_, i) => (
               <TableRow key={`empty-${i}`} className="h-[50px]">
-                {session && <TableCell className="w-[60px]" />}
+                {isAdmin && <TableCell className="w-[60px]" />}
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[200px]" />
                 <TableCell className="w-[180px]" />

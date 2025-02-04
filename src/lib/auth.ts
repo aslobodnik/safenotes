@@ -1,16 +1,6 @@
-'server only'
-
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getServerSession } from 'next-auth'
-
-import { getAuthOptions } from '@/pages/api/auth/[...nextauth]'
-
-export async function verifySession(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, getAuthOptions(req))
-
-  if (!session) {
-    return res.status(401).json({ message: 'Not authorized' })
-  }
-
-  return session
-}
+export const adminAddresses = [
+  '0x534631Bcf33BDb069fB20A93d2fdb9e4D4dD42CF',
+  '0xA7860E99e3ce0752D1ac53b974E309fFf80277C6',
+  '0x179A862703a4adfb29896552DF9e307980D19285',
+  '0x8f3f560beb2b53A24A0383bAdc122Dda1563ee8C',
+]
