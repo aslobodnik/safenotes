@@ -380,7 +380,8 @@ export default function TransactionTable({
                     </Button>
                   </TableCell>
                 )}
-                <TableCell className="w-[180px]">
+                {/* Safe address */}
+                <TableCell className="min-w-72">
                   <Link
                     target="_blank"
                     href={`https://etherscan.io/address/${transfer.safeAddress}`}
@@ -388,6 +389,7 @@ export default function TransactionTable({
                     {formatAddress(mainPartyAddress)}
                   </Link>
                 </TableCell>
+                {/* Amount */}
                 <TableCell className="w-[200px]">
                   <TransactionDirectionAmount
                     isOutgoing={isOutgoing}
@@ -397,7 +399,8 @@ export default function TransactionTable({
                     tokenDecimals={transfer.tokenDecimals || 18}
                   />
                 </TableCell>
-                <TableCell className="w-[180px]" title={counterpartyAddress}>
+                {/* Counterparty address */}
+                <TableCell className="min-w-48" title={counterpartyAddress}>
                   <Link
                     target="_blank"
                     href={`https://etherscan.io/address/${counterpartyAddress}`}
@@ -405,9 +408,11 @@ export default function TransactionTable({
                     {formatAddress(counterpartyAddress)}
                   </Link>
                 </TableCell>
-                <TableCell className="w-[140px] whitespace-nowrap font-medium">
+                {/* Category */}
+                <TableCell className="min-w-48 whitespace-nowrap font-medium">
                   {categoryName}
                 </TableCell>
+                {/* Description */}
                 <TableCell
                   className="hidden max-w-[200px] cursor-pointer overflow-hidden truncate text-ellipsis whitespace-nowrap text-muted-foreground md:table-cell"
                   title={description}
