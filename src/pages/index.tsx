@@ -1,12 +1,11 @@
-import { useSession } from 'next-auth/react'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Layout } from '@/components/Layout'
+import { LoadingIndicator } from '@/components/LoadingIndicator'
 import SafeSelector from '@/components/SafeSelector'
 import { SafeStats } from '@/components/SafeStats'
 import { SyncTransactionsDialog } from '@/components/SyncTransactionsDialog'
-import { TableSkeleton } from '@/components/TableSkeleton'
 import TransactionTable from '@/components/TransactionTable'
 import { Button } from '@/components/ui/button'
 import { api } from '@/utils/trpc'
@@ -14,8 +13,9 @@ import { api } from '@/utils/trpc'
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false)
+  const [hasPrefetched, setHasPrefetched] = useState(false)
 
-  const { data: session } = useSession()
+  const utils = api.useUtils()
 
   const {
     data: transfers,
@@ -55,6 +55,27 @@ export default function Home() {
     categoriesError ||
     allSafesError
 
+  // Prefetch transfers for all safes after initial load
+  useEffect(() => {
+    const prefetchAllSafeTransfers = async () => {
+      if (!allSafes || hasPrefetched || isLoading) return
+
+      console.log('🚀 Prefetching transfers for all safes...')
+
+      // Prefetch transfers for each safe
+      await Promise.all(
+        allSafes.map((safe) =>
+          utils.transfers.getTransfers.prefetch({ safeAddress: safe.address })
+        )
+      )
+
+      setHasPrefetched(true)
+      console.log('✅ Prefetched all safe transfers!')
+    }
+
+    prefetchAllSafeTransfers()
+  }, [allSafes, hasPrefetched, isLoading, utils.transfers.getTransfers])
+
   return (
     <Layout>
       <div className="space-y-4">
@@ -88,18 +109,70 @@ export default function Home() {
             Sync
           </Button>
         </div>
-        {isLoading ? (
-          <TableSkeleton isSigner={!!session} />
-        ) : transfers ? (
-          <TransactionTable
-            transfers={transfers}
-            transferCategories={transferCategories || []}
-            categories={categories || []}
-            safeAddress={selectedSafe}
-            isLoading={isLoading}
-            allSafes={allSafes || []}
-          />
-        ) : null}
+        <div className="relative">
+          {/* Loading Indicator */}
+          <div
+            className={`transition-all duration-500 ${
+              isLoading ? 'opacity-100' : 'pointer-events-none opacity-0'
+            } absolute inset-0 z-10 h-[600px]`}
+          >
+            <LoadingIndicator
+              steps={[
+                {
+                  id: 'safes',
+                  label: 'Loading safes',
+                  status: allSafesLoading ? 'loading' : 'complete',
+                },
+                {
+                  id: 'transfers',
+                  label: 'Loading transactions',
+                  status: transfersLoading
+                    ? 'loading'
+                    : allSafesLoading
+                      ? 'pending'
+                      : 'complete',
+                },
+                {
+                  id: 'categories',
+                  label: 'Loading categories',
+                  status: categoriesLoading
+                    ? 'loading'
+                    : transfersLoading
+                      ? 'pending'
+                      : 'complete',
+                },
+                {
+                  id: 'transfer-categories',
+                  label: 'Loading transfer categories',
+                  status: transferCategoriesLoading
+                    ? 'loading'
+                    : categoriesLoading
+                      ? 'pending'
+                      : 'complete',
+                },
+              ]}
+            />
+          </div>
+
+          {/* Table */}
+          <div
+            className={`transition-opacity duration-500 ${
+              isLoading ? 'opacity-0' : 'opacity-100'
+            }`}
+            style={{ minHeight: '600px' }}
+          >
+            {transfers && (
+              <TransactionTable
+                transfers={transfers}
+                transferCategories={transferCategories || []}
+                categories={categories || []}
+                safeAddress={selectedSafe}
+                isLoading={false}
+                allSafes={allSafes || []}
+              />
+            )}
+          </div>
+        </div>
         {isError && <div> transfers error </div>}
         <SyncTransactionsDialog
           isOpen={isSyncDialogOpen}
