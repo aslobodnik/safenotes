@@ -13,7 +13,7 @@ export function TransactionTableHeader({
         {showEditColumn && <TableHead className="w-[60px]">Edit</TableHead>}
         <TableHead className="w-[180px]">Safe</TableHead>
         <TableHead className="w-[200px]">Amount</TableHead>
-        <TableHead className="w-[180px]">Address (to/from)</TableHead>
+        <TableHead className="w-[180px]">To / From</TableHead>
         <TableHead className="w-[140px]">Category</TableHead>
         <TableHead className="hidden w-[200px] md:table-cell">
           Description

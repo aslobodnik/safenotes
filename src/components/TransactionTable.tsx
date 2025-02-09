@@ -390,7 +390,7 @@ export default function TransactionTable({
                   </TableCell>
                 )}
                 {/* Safe address */}
-                <TableCell className="min-w-72">
+                <TableCell className="min-w-48 sm:min-w-72">
                   <Link
                     target="_blank"
                     href={`https://etherscan.io/address/${transfer.safeAddress}`}
