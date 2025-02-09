@@ -70,7 +70,7 @@ export default function Home() {
             alt="ENS Logo"
             width={80}
             height={80}
-            className="w-28 -rotate-3 rounded-3xl border-2 border-white shadow-[0_0_22px_0_#00000029]"
+            className="hidden w-20 -rotate-3 rounded-3xl border-2 border-white shadow-[0_0_22px_0_#00000029] sm:block md:w-28"
           />
         </div>
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
