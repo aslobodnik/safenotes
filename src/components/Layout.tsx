@@ -28,13 +28,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Right side - Buttons */}
         <div className="flex items-center gap-4">
-          <Link
-            href="/admin"
-            className="rounded-md py-2 text-brand transition-colors duration-300 hover:text-brand/80"
-          >
-            Home
-          </Link>
-
           <ConnectButton />
         </div>
       </nav>
@@ -82,14 +75,14 @@ function ConnectButton() {
   if (address && isMounted) {
     return (
       <div
-        className="flex items-center gap-2 rounded-md bg-brand py-0.5 pl-0.5 pr-2 text-white hover:cursor-pointer hover:bg-brand/90"
+        className="flex items-center gap-2 rounded-md border border-brand pr-2 text-brand hover:cursor-pointer hover:bg-brand/10"
         onClick={openAccountModal}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={avatar ?? '/img/fallback-avatar.svg'}
           alt="Avatar"
-          className="h-9 w-9 rounded-md"
+          className="h-9 w-9 rounded-l-md"
         />
         <span>{name ?? truncateAddress(address)}</span>
       </div>
