@@ -8,6 +8,11 @@ import { EditCategoryDialog } from '@/components/EditCategoryDialog'
 import { TableSkeleton } from '@/components/TableSkeleton'
 import { TransactionTableHeader } from '@/components/transaction-table/TableHeader'
 import { Button } from '@/components/ui/button'
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import {
   type CategoryItem,
@@ -417,11 +422,17 @@ export default function TransactionTable({
                   {categoryName}
                 </TableCell>
                 {/* Description */}
-                <TableCell
-                  className="hidden max-w-[200px] cursor-pointer overflow-hidden truncate text-ellipsis whitespace-nowrap text-muted-foreground md:table-cell"
-                  title={description}
-                >
-                  {description}
+                <TableCell className="hidden max-w-[200px] md:table-cell">
+                  <HoverCard openDelay={200}>
+                    <HoverCardTrigger asChild>
+                      <span className="block cursor-help overflow-hidden truncate text-ellipsis text-muted-foreground">
+                        {description}
+                      </span>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80">
+                      <p className="break-words text-sm">{description}</p>
+                    </HoverCardContent>
+                  </HoverCard>
                 </TableCell>
 
                 <TableCell className="hidden w-[140px] md:table-cell">
