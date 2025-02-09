@@ -70,7 +70,7 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
     enabled: !!safeAddress,
   })
 
-  const { data: ensNames } = useQuery({
+  const { data: ensNames, isLoading: isEnsNamesLoading } = useQuery({
     queryKey: ['safe-signers-ens', signersData?.owners],
     queryFn: async () => {
       if (!signersData) return []
@@ -81,9 +81,19 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
             address: address as Address,
           })
 
+          let avatar = null
+          if (name) {
+            try {
+              avatar = await publicClient.getEnsAvatar({ name })
+            } catch (error) {
+              console.error('Failed to fetch ENS avatar:', error)
+            }
+          }
+
           return {
             address,
             name,
+            avatar,
           }
         })
       )
@@ -117,12 +127,34 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
         <HoverCardContent className="w-[300px]" align="start" sideOffset={4}>
           <div className="space-y-2">
             <h3 className="font-semibold">Signers</h3>
-            <ul className="space-y-1">
-              {ensNames?.map(({ address, name }) => (
-                <li key={address} className="text-sm">
-                  {name || `${address.slice(0, 6)}...${address.slice(-4)}`}
-                </li>
-              ))}
+            <ul className="space-y-2">
+              {isEnsNamesLoading
+                ? // Loading skeletons
+                  Array.from({ length: signersData?.owners?.length || 3 }).map(
+                    (_, i) => (
+                      <li key={i} className="flex items-center text-sm">
+                        <div className="mr-2 h-6 w-6 animate-pulse rounded-full bg-neutral-200"></div>
+                        <div className="h-4 w-32 animate-pulse rounded bg-neutral-200"></div>
+                      </li>
+                    )
+                  )
+                : ensNames?.map(({ address, name, avatar }) => (
+                    <li key={address} className="flex items-center text-sm">
+                      {avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={avatar}
+                          alt={name || address}
+                          className="mr-2 rounded-full"
+                          width={24}
+                          height={24}
+                        />
+                      ) : (
+                        <div className="mr-2 h-6 w-6 rounded-full bg-brand"></div>
+                      )}{' '}
+                      {name || `${address.slice(0, 6)}...${address.slice(-4)}`}
+                    </li>
+                  ))}
             </ul>
           </div>
         </HoverCardContent>
