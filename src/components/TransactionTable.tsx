@@ -192,7 +192,7 @@ export default function TransactionTable({
   const { data: session } = useSession()
 
   // TODO: Check if the user is a signer on the Safe. This currently only checks if they are a global admin
-  const isSigner = adminAddresses.includes(session?.user?.name || '')
+  const isAdmin = adminAddresses.includes(session?.user?.name || '')
   const [currentPage, setCurrentPage] = useState(1)
   const [ensNames, setEnsNames] = useState<AddressMap>({})
   const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
@@ -294,18 +294,18 @@ export default function TransactionTable({
   }
 
   if (isLoading) {
-    return <TableSkeleton isSigner={isSigner} />
+    return <TableSkeleton isAdmin={isAdmin} />
   }
 
   if (!processedTransfers || processedTransfers.length === 0) {
     return (
       <div className="relative rounded-lg border">
         <Table>
-          <TransactionTableHeader showEditColumn={isSigner} />
+          <TransactionTableHeader showEditColumn={isAdmin} />
           <TableBody>
             {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
               <TableRow key={i} className="h-[50px]">
-                {isSigner && <TableCell className="w-[60px]" />}
+                {isAdmin && <TableCell className="w-[60px]" />}
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[200px]" />
                 <TableCell className="w-[180px]" />
@@ -325,7 +325,7 @@ export default function TransactionTable({
 
   return (
     <div className="rounded-lg border">
-      {isSigner && (
+      {isAdmin && (
         <EditCategoryDialog
           isOpen={!!editingTransfer}
           onClose={handleDialogClose}
@@ -360,7 +360,7 @@ export default function TransactionTable({
         />
       )}
       <Table>
-        <TransactionTableHeader showEditColumn={isSigner} />
+        <TransactionTableHeader showEditColumn={isAdmin} />
         <TableBody>
           {paginatedTransfers.map((transfer) => {
             const isOutgoing = transfer.viewType === 'out'
@@ -378,7 +378,7 @@ export default function TransactionTable({
                 key={`${transfer.transferId}-${transfer.viewType}`}
                 className="h-[50px]"
               >
-                {isSigner && (
+                {isAdmin && (
                   <TableCell className="w-[60px]">
                     <Button
                       variant="ghost"
@@ -445,7 +445,7 @@ export default function TransactionTable({
           {[...Array(ITEMS_PER_PAGE - paginatedTransfers.length)].map(
             (_, i) => (
               <TableRow key={`empty-${i}`} className="h-[50px]">
-                {isSigner && <TableCell className="w-[60px]" />}
+                {isAdmin && <TableCell className="w-[60px]" />}
                 <TableCell className="w-[180px]" />
                 <TableCell className="w-[200px]" />
                 <TableCell className="w-[180px]" />
