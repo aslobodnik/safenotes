@@ -9,13 +9,14 @@ import { SyncTransactionsDialog } from '@/components/SyncTransactionsDialog'
 import { TableSkeleton } from '@/components/TableSkeleton'
 import TransactionTable from '@/components/TransactionTable'
 import { Button } from '@/components/ui/button'
+import { adminAddresses } from '@/lib/auth'
 import { api } from '@/utils/trpc'
 
 export default function Home() {
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false)
-
   const { data: session } = useSession()
+  const isAdmin = adminAddresses.includes(session?.user?.name || '')
 
   const {
     data: transfers,
@@ -70,7 +71,7 @@ export default function Home() {
             alt="ENS Logo"
             width={80}
             height={80}
-            className="w-28 -rotate-3 rounded-3xl border-2 border-white shadow-[0_0_22px_0_#00000029]"
+            className="hidden w-20 -rotate-3 rounded-3xl border-2 border-white shadow-[0_0_22px_0_#00000029] sm:block md:w-28"
           />
         </div>
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -81,15 +82,17 @@ export default function Home() {
             />
             <SafeStats safeAddress={selectedSafe} />
           </div>
-          <Button
-            onClick={() => setIsSyncDialogOpen(true)}
-            className="hidden whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100 md:block"
-          >
-            Sync
-          </Button>
+          {isAdmin && (
+            <Button
+              onClick={() => setIsSyncDialogOpen(true)}
+              className="hidden whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100 md:block"
+            >
+              Sync
+            </Button>
+          )}
         </div>
         {isLoading ? (
-          <TableSkeleton isSigner={!!session} />
+          <TableSkeleton isAdmin={isAdmin} />
         ) : transfers ? (
           <TransactionTable
             transfers={transfers}

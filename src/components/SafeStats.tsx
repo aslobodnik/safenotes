@@ -115,7 +115,7 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
       }) || '0'
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
       <HoverCard openDelay={200} closeDelay={300}>
         <HoverCardTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-200 px-4 py-2 pr-8">
           <Users size={24} className="text-neutral-700" />
