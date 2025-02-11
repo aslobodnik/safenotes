@@ -54,7 +54,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Link
           className="transition-colors duration-300 hover:text-brand"
           target="_blank"
-          href="https://github.com/"
+          href="https://github.com/aslobodnik/safenotes"
         >
           Github
         </Link>
