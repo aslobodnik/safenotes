@@ -10,19 +10,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="mx-auto flex max-w-7xl flex-col">
       {/* Header/Navigation Bar */}
-      <nav className="flex items-center justify-between p-4">
+      <nav className="flex items-center justify-between p-8">
         {/* Left side - Brand */}
         <Link
           href="/"
-          className="flex items-center gap-2 text-2xl font-bold text-brand"
+          className="flex items-center gap-2 text-xl font-bold text-brand"
         >
           <Image
-            src="/img/ens-logo-Blue.svg"
+            src="/img/logo-safenotes.svg"
             alt="ENS Logo"
-            width={65}
+            width={20}
             height={14}
           />
-          <span className="h-6 w-[2px] bg-neutral-200"></span>
+
           <span className="text-neutral-900"> SafeNotes</span>
         </Link>
 
