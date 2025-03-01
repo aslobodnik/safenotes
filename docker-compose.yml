@@ -1,0 +1,17 @@
+version: "3.9"  # Use a suitable version
+services:
+  web:
+    build: .  # Build from the current directory's Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app  # Mount the current directory to /app
+      # Anonymous volumes to isolate container-specific directories
+      - /app/node_modules
+      - /root/.local/share/pnpm/store
+    environment:
+      - NODE_ENV=development  # Often useful for Next.js
+      - PNPM_HOME=/root/.local/share/pnpm
+    env_file:
+      - .env
+    command: pnpm dev #Start the app
