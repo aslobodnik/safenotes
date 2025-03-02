@@ -2,7 +2,9 @@ import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 
+import Link from 'next/link'
 import { Layout } from '@/components/Layout'
 import SafeSelector from '@/components/SafeSelector'
 import { SafeStats } from '@/components/SafeStats'
@@ -12,50 +14,10 @@ import TransactionTable from '@/components/TransactionTable'
 import { Button } from '@/components/ui/button'
 import { adminAddresses } from '@/lib/auth'
 import { api } from '@/utils/trpc'
+import ClientCard from '@/components/ClientCard'
 
 export default function Home() {
-  const [selectedSafe, setSelectedSafe] = useState<string | null>(null)
-  const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false)
-  const { data: session } = useSession()
-  const isAdmin = adminAddresses.includes(session?.user?.name || '')
-
-  const {
-    data: transfers,
-    isLoading: transfersLoading,
-    isError: transfersError,
-  } = api.transfers.getTransfers.useQuery({
-    safeAddress: selectedSafe,
-  })
-
-  const {
-    data: transferCategories,
-    isLoading: transferCategoriesLoading,
-    isError: transferCategoriesError,
-  } = api.categories.getAllTransferCategories.useQuery()
-
-  const {
-    data: categories,
-    isLoading: categoriesLoading,
-    isError: categoriesError,
-  } = api.categories.getAll.useQuery()
-
-  const {
-    data: allSafes,
-    isLoading: allSafesLoading,
-    isError: allSafesError,
-  } = api.safes.getAllSafes.useQuery()
-
-  const isLoading =
-    transfersLoading ||
-    transferCategoriesLoading ||
-    categoriesLoading ||
-    allSafesLoading
-
-  const isError =
-    transfersError ||
-    transferCategoriesError ||
-    categoriesError ||
-    allSafesError
+  const { data: organizations } = api.organizations.getAll.useQuery()
 
   return (
     <>
@@ -94,57 +56,87 @@ export default function Home() {
       </Head>
 
       <Layout>
-        <div className="space-y-4">
+        <div className="space-y-8">
           <div className="flex justify-between">
             <div className="flex flex-col gap-3">
-              <h1 className="text-4xl font-bold">Explore ENS Safes</h1>
+              <h1 className="text-4xl font-bold">SafeNotes</h1>
               <div className="text-neutral-500">
-                View transactions and annotations of ENS DAO Working Group
-                Safes.
+                Decoding DAO transactions one note at time.
               </div>
             </div>
-            <Image
-              src="/img/logo-filled.svg"
-              alt="ENS Logo"
-              width={80}
-              height={80}
-              className="hidden w-20 -rotate-3 rounded-3xl border-2 border-white shadow-[0_0_22px_0_#00000029] sm:block md:w-28"
-            />
-          </div>
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
-              <SafeSelector
-                safeAddress={selectedSafe}
-                onChange={setSelectedSafe}
-              />
-              <SafeStats safeAddress={selectedSafe} />
-            </div>
-            {isAdmin && (
-              <Button
-                onClick={() => setIsSyncDialogOpen(true)}
-                className="hidden whitespace-nowrap bg-neutral-50 text-neutral-900 hover:bg-neutral-100 md:block"
+            {/* Desktop contact section - hidden on mobile */}
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                href="https://t.me/limes_eth"
+                target="_blank"
+                className="transition-opacity duration-300 hover:opacity-90"
               >
-                Sync
-              </Button>
-            )}
+                <Image
+                  src="/img/logo-telegram.png"
+                  alt="Telegram Icon"
+                  width={32}
+                  height={32}
+                />
+              </Link>
+              <div className="flex flex-col">
+                <span className="text-sm text-neutral-500">
+                  Want to try SafeNotes for your safes?
+                </span>
+                <div className="flex gap-1 text-sm text-neutral-900">
+                  DM limes.eth on{' '}
+                  <Link
+                    href="https://t.me/limes_eth"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-sm text-blue-500 transition-opacity duration-300 hover:text-blue-600"
+                  >
+                    Telegram
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
-          {isLoading ? (
-            <TableSkeleton isAdmin={isAdmin} />
-          ) : transfers ? (
-            <TransactionTable
-              transfers={transfers}
-              transferCategories={transferCategories || []}
-              categories={categories || []}
-              safeAddress={selectedSafe}
-              isLoading={isLoading}
-              allSafes={allSafes || []}
-            />
-          ) : null}
-          {isError && <div> transfers error </div>}
-          <SyncTransactionsDialog
-            isOpen={isSyncDialogOpen}
-            onClose={() => setIsSyncDialogOpen(false)}
-          />
+
+          {/* Mobile contact card - only visible on mobile */}
+          <div className="md:hidden rounded-lg border p-4 bg-white shadow-sm">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/img/logo-telegram.png"
+                alt="Telegram Icon"
+                width={32}
+                height={32}
+              />
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">
+                  Want to try SafeNotes for your safes?
+                </span>
+                <Link
+                  href="https://t.me/limes_eth"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-500"
+                >
+                  DM limes.eth on Telegram
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4"></div>
+          </div>
+          <div className="text-xl font-bold">Trusted By</div>
+          {/* Card Container */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {
+              organizations?.map((org) => (
+                <ClientCard
+                  key={org.id}
+                  organization={org}
+                />
+              ))
+            }
+          </div>
         </div>
       </Layout>
     </>

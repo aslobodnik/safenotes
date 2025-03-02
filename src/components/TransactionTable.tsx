@@ -24,6 +24,7 @@ import { adminAddresses } from '@/lib/auth'
 import { truncateAddress } from '@/lib/utils'
 import { type AddressMap, fetchEnsNames } from '@/utils/fetch-ens-names'
 import { api } from '@/utils/trpc'
+import { TransactionCard } from '@/components/TransactionCard'
 
 interface TransactionTableProps {
   transfers: TransferItem[]
@@ -365,104 +366,123 @@ export default function TransactionTable({
           }
         />
       )}
-      <Table>
-        <TransactionTableHeader showEditColumn={isAdmin} />
-        <TableBody>
-          {paginatedTransfers.map((transfer) => {
-            const isOutgoing = transfer.viewType === 'out'
-            const mainPartyAddress = isOutgoing
-              ? transfer.fromAddress
-              : transfer.toAddress
-            const counterpartyAddress = isOutgoing
-              ? transfer.toAddress
-              : transfer.fromAddress
-            const categoryName = getCategoryName(transfer.transferId)
-            const description = getCategoryDescription(transfer.transferId)
+      
+      {/* Desktop View */}
+      <div className="hidden md:block">
+        <Table>
+          <TransactionTableHeader showEditColumn={isAdmin} />
+          <TableBody>
+            {paginatedTransfers.map((transfer) => {
+              const isOutgoing = transfer.viewType === 'out'
+              const mainPartyAddress = isOutgoing
+                ? transfer.fromAddress
+                : transfer.toAddress
+              const counterpartyAddress = isOutgoing
+                ? transfer.toAddress
+                : transfer.fromAddress
+              const categoryName = getCategoryName(transfer.transferId)
+              const description = getCategoryDescription(transfer.transferId)
 
-            return (
-              <TableRow
-                key={`${transfer.transferId}-${transfer.viewType}`}
-                className="h-[50px]"
-              >
-                {isAdmin && (
-                  <TableCell className="w-[60px]">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditCategory(transfer.transferId)}
+              return (
+                <TableRow
+                  key={`${transfer.transferId}-${transfer.viewType}`}
+                  className="h-[50px]"
+                >
+                  {isAdmin && (
+                    <TableCell className="w-[60px]">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditCategory(transfer.transferId)}
+                      >
+                        ✏️
+                      </Button>
+                    </TableCell>
+                  )}
+                  {/* Safe address */}
+                  <TableCell className="min-w-48 sm:min-w-72">
+                    <Link
+                      target="_blank"
+                      href={`https://etherscan.io/address/${transfer.safeAddress}`}
                     >
-                      ✏️
-                    </Button>
+                      {formatAddress(mainPartyAddress)}
+                    </Link>
                   </TableCell>
-                )}
-                {/* Safe address */}
-                <TableCell className="min-w-48 sm:min-w-72">
-                  <Link
-                    target="_blank"
-                    href={`https://etherscan.io/address/${transfer.safeAddress}`}
-                  >
-                    {formatAddress(mainPartyAddress)}
-                  </Link>
-                </TableCell>
-                {/* Amount */}
-                <TableCell className="w-[200px]">
-                  <TransactionDirectionAmount
-                    isOutgoing={isOutgoing}
-                    transactionHash={transfer.transactionHash}
-                    amount={transfer.value || '0'}
-                    tokenSymbol={transfer.tokenSymbol || ''}
-                    tokenDecimals={transfer.tokenDecimals || 18}
-                  />
-                </TableCell>
-                {/* Counterparty address */}
-                <TableCell className="min-w-48" title={counterpartyAddress}>
-                  <Link
-                    target="_blank"
-                    href={`https://etherscan.io/address/${counterpartyAddress}`}
-                  >
-                    {formatAddress(counterpartyAddress)}
-                  </Link>
-                </TableCell>
-                {/* Category */}
-                <TableCell className="min-w-48 whitespace-nowrap font-medium">
-                  {categoryName}
-                </TableCell>
-                {/* Description */}
-                <TableCell className="hidden max-w-[200px] md:table-cell">
-                  <HoverCard openDelay={200}>
-                    <HoverCardTrigger asChild>
-                      <span className="block cursor-help overflow-hidden truncate text-ellipsis text-muted-foreground">
-                        {description}
-                      </span>
-                    </HoverCardTrigger>
-                    <HoverCardContent className="w-80">
-                      <p className="break-words text-sm">{description}</p>
-                    </HoverCardContent>
-                  </HoverCard>
-                </TableCell>
+                  {/* Amount */}
+                  <TableCell className="w-[200px]">
+                    <TransactionDirectionAmount
+                      isOutgoing={isOutgoing}
+                      transactionHash={transfer.transactionHash}
+                      amount={transfer.value || '0'}
+                      tokenSymbol={transfer.tokenSymbol || ''}
+                      tokenDecimals={transfer.tokenDecimals || 18}
+                    />
+                  </TableCell>
+                  {/* Counterparty address */}
+                  <TableCell className="min-w-48" title={counterpartyAddress}>
+                    <Link
+                      target="_blank"
+                      href={`https://etherscan.io/address/${counterpartyAddress}`}
+                    >
+                      {formatAddress(counterpartyAddress)}
+                    </Link>
+                  </TableCell>
+                  {/* Category */}
+                  <TableCell className="min-w-48 whitespace-nowrap font-medium">
+                    {categoryName}
+                  </TableCell>
+                  {/* Description */}
+                  <TableCell className="hidden max-w-[200px] md:table-cell">
+                    <HoverCard openDelay={200}>
+                      <HoverCardTrigger asChild>
+                        <span className="block cursor-help overflow-hidden truncate text-ellipsis text-muted-foreground">
+                          {description}
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <p className="break-words text-sm">{description}</p>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </TableCell>
 
-                <TableCell className="hidden w-[140px] md:table-cell">
-                  {format(new Date(transfer.executionDate), 'MMM d, yyyy')}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-          {/* Empty rows */}
-          {[...Array(ITEMS_PER_PAGE - paginatedTransfers.length)].map(
-            (_, i) => (
-              <TableRow key={`empty-${i}`} className="h-[50px]">
-                {isAdmin && <TableCell className="w-[60px]" />}
-                <TableCell className="w-[180px]" />
-                <TableCell className="w-[200px]" />
-                <TableCell className="w-[180px]" />
-                <TableCell className="w-[140px]" />
-                <TableCell className="hidden w-[200px] md:table-cell" />
-                <TableCell className="hidden w-[140px] md:table-cell" />
-              </TableRow>
-            )
-          )}
-        </TableBody>
-      </Table>
+                  <TableCell className="hidden w-[140px] md:table-cell">
+                    {format(new Date(transfer.executionDate), 'MMM d, yyyy')}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+            {/* Empty rows */}
+            {[...Array(ITEMS_PER_PAGE - paginatedTransfers.length)].map(
+              (_, i) => (
+                <TableRow key={`empty-${i}`} className="h-[50px]">
+                  {isAdmin && <TableCell className="w-[60px]" />}
+                  <TableCell className="w-[180px]" />
+                  <TableCell className="w-[200px]" />
+                  <TableCell className="w-[180px]" />
+                  <TableCell className="w-[140px]" />
+                  <TableCell className="hidden w-[200px] md:table-cell" />
+                  <TableCell className="hidden w-[140px] md:table-cell" />
+                </TableRow>
+              )
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile View */}
+      <div className="md:hidden space-y-4 p-4">
+        {paginatedTransfers.map((transfer) => (
+          <TransactionCard
+            key={`${transfer.transferId}-${transfer.viewType}`}
+            transfer={transfer}
+            transferCategories={transferCategories}
+            categories={categories}
+            ensNames={ensNames}
+            isAdmin={isAdmin}
+            onEditCategory={handleEditCategory}
+          />
+        ))}
+      </div>
 
       <Pagination
         currentPage={currentPage}
