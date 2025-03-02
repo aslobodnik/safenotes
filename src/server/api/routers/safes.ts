@@ -98,4 +98,13 @@ export const safesRouter = createTRPCRouter({
         message: 'Safe restored successfully',
       }
     }),
+
+  getByOrganization: publicProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select()
+        .from(safes)
+        .where(eq(safes.organizationId, input.organizationId));
+    }),
 })
