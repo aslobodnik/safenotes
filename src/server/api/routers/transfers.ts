@@ -63,6 +63,7 @@ export const transfersRouter = createTRPCRouter({
         .values({
           transferId: transfer.transferId,
           safeAddress: transfer.safeAddress,
+          safeChain: 'ETH',
           type: transfer.type,
           executionDate: new Date(transfer.executionDate),
           blockNumber: transfer.blockNumber,

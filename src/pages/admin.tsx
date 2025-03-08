@@ -34,15 +34,15 @@ export default function Admin() {
     },
   })
 
-  const { mutate: createSafe } = api.safes.create.useMutation({
-    onSuccess: () => {
-      setNewSafe('')
-      void utils.safes.getAllSafes.invalidate()
-    },
-    onError: (error) => {
-      alert(error.message)
-    },
-  })
+  // const { mutate: createSafe } = api.safes.create.useMutation({
+  //   onSuccess: () => {
+  //     setNewSafe('')
+  //     void utils.safes.getAllSafes.invalidate()
+  //   },
+  //   onError: (error) => {
+  //     alert(error.message)
+  //   },
+  // })
 
   const { mutate: deleteSafe } = api.safes.delete.useMutation({
     onSuccess: () => {
@@ -61,7 +61,8 @@ export default function Admin() {
       return
     }
 
-    createSafe({ address: newSafe })
+    console.log(`adding safes is disabled`)
+    // createSafe({ address: newSafe })
   }
 
   const handleAddCategory = async (e: React.FormEvent) => {

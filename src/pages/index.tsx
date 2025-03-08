@@ -1,18 +1,7 @@
-import { useSession } from 'next-auth/react'
 import Head from 'next/head'
 import Image from 'next/image'
-import { useState } from 'react'
-import { useRouter } from 'next/router'
-
 import Link from 'next/link'
 import { Layout } from '@/components/Layout'
-import SafeSelector from '@/components/SafeSelector'
-import { SafeStats } from '@/components/SafeStats'
-import { SyncTransactionsDialog } from '@/components/SyncTransactionsDialog'
-import { TableSkeleton } from '@/components/TableSkeleton'
-import TransactionTable from '@/components/TransactionTable'
-import { Button } from '@/components/ui/button'
-import { adminAddresses } from '@/lib/auth'
 import { api } from '@/utils/trpc'
 import ClientCard from '@/components/ClientCard'
 
