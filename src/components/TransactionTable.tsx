@@ -199,30 +199,36 @@ export default function TransactionTable({
   const utils = api.useUtils()
 
   // Process transfers to create rows for each safe involved
-  const processedTransfers = transfers.flatMap((transfer) => {
-    const rows: (TransferItem & { viewType: 'in' | 'out' })[] = []
-    const trackedSafeAddresses = safeAddress
-      ? new Set([safeAddress.toLowerCase()])
-      : new Set(allSafes.map((safe) => safe.address.toLowerCase()))
+  const processedTransfers = transfers
+    .filter((transfer) => {
+      const decimals = transfer.tokenDecimals || 18
+      const value = Number(transfer.value) / Math.pow(10, decimals)
+      return value >= 0.99 // threshold to show transfers
+    })
+    .flatMap((transfer) => {
+      const rows: (TransferItem & { viewType: 'in' | 'out' })[] = []
+      const trackedSafeAddresses = safeAddress
+        ? new Set([safeAddress.toLowerCase()])
+        : new Set(allSafes.map((safe) => safe.address.toLowerCase()))
 
-    // Check if from address is a tracked safe
-    if (trackedSafeAddresses.has(transfer.fromAddress.toLowerCase())) {
-      rows.push({
-        ...transfer,
-        viewType: 'out',
-      })
-    }
+      // Check if from address is a tracked safe
+      if (trackedSafeAddresses.has(transfer.fromAddress.toLowerCase())) {
+        rows.push({
+          ...transfer,
+          viewType: 'out',
+        })
+      }
 
-    // Check if to address is a tracked safe
-    if (trackedSafeAddresses.has(transfer.toAddress.toLowerCase())) {
-      rows.push({
-        ...transfer,
-        viewType: 'in',
-      })
-    }
+      // Check if to address is a tracked safe
+      if (trackedSafeAddresses.has(transfer.toAddress.toLowerCase())) {
+        rows.push({
+          ...transfer,
+          viewType: 'in',
+        })
+      }
 
-    return rows
-  })
+      return rows
+    })
 
   // Calculate pagination based on processed transfers
   const totalItems = processedTransfers.length
