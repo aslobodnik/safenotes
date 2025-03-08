@@ -7,6 +7,7 @@ import {
   text,
   timestamp,
   uuid,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 
 // Define transfer type enum
@@ -14,6 +15,23 @@ export const transferTypeEnum = pgEnum('transfer_type', [
   'ETHER_TRANSFER',
   'ERC20_TRANSFER',
 ])
+
+export const chainEnum = pgEnum('chain', [
+  'ETH', // ethereum | 1
+  'ARB', // arbitrum | 42161
+  'UNI', // uni | 130 | 0x82
+])
+
+// Define organizations table with additional fields
+export const organizations = pgTable('organizations', {
+  id: uuid('id').primaryKey().defaultRandom().notNull(),
+  name: text('name').notNull().unique(),
+  slug: text('slug').notNull().unique(), // e.g., "ens", "uniswap"
+  description: text('description').notNull(),
+  bannerImage: text('banner_image').notNull(), // URL to the banner image
+  logoImage: text('logo_image').notNull(), // URL to the logo image
+  createdAt: timestamp('created_at').defaultNow(),
+})
 
 export const categories = pgTable('categories', {
   id: uuid('id').primaryKey().defaultRandom().notNull(),
@@ -23,17 +41,26 @@ export const categories = pgTable('categories', {
 export type CategoryItem = InferSelectModel<typeof categories>
 
 export const safes = pgTable('safes', {
-  address: text('address').primaryKey(),
+  address: text('address').notNull(),
+  chain: chainEnum('chain').notNull(),
+  organizationId: uuid('organization_id')
+    .notNull()
+    .references(() => organizations.id),
   removed: boolean('removed').default(false),
   removedAt: timestamp('removed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.address, table.chain] }),
+  }
 })
 
 export type SafeItem = InferSelectModel<typeof safes>
+
 export const transfers = pgTable('transfers', {
   transferId: text('transfer_id').primaryKey(),
-  safeAddress: text('safe_address')
-    .notNull()
-    .references(() => safes.address),
+  safeAddress: text('safe_address').notNull(),
+  safeChain: chainEnum('chain').notNull(),
   type: transferTypeEnum('type').notNull(),
   executionDate: timestamp('execution_date').notNull(),
   blockNumber: integer('block_number').notNull(),
@@ -64,9 +91,16 @@ export const transferCategories = pgTable('transfer_categories', {
 
 export type TransferCategoryItem = InferSelectModel<typeof transferCategories>
 
-// Define relationships
-export const transfersRelations = relations(transfers, ({ many }) => ({
-  categories: many(transferCategories),
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  safes: many(safes),
+}))
+
+export const safesRelations = relations(safes, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [safes.organizationId],
+    references: [organizations.id],
+  }),
+  transfers: many(transfers),
 }))
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
@@ -74,6 +108,9 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 }))
 
 // Types for better type safety
+export type Organization = typeof organizations.$inferSelect
+export type NewOrganization = typeof organizations.$inferInsert
+
 export type Category = typeof categories.$inferSelect
 export type NewCategory = typeof categories.$inferInsert
 
