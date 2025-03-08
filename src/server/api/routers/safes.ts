@@ -34,20 +34,19 @@ export const safesRouter = createTRPCRouter({
     return safesWithEns
   }),
 
-  create: adminProcedure
-    .input(
-      z.object({
-        address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(safes).values({
-        address: input.address,
-      })
+  // create: adminProcedure
+  //   .input(
+  //     z.object({
+  //       address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  //     })
+  //   )
+  //   .mutation(async ({ ctx, input }) => {
+  //     await ctx.db.insert(safes).values({
+  //       address: input.address,
+  //     })
 
-      return ctx.db.select().from(safes)
-    }),
-
+  //     return ctx.db.select().from(safes)
+  //   }),
   delete: adminProcedure
     .input(
       z.object({
