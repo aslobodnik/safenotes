@@ -91,6 +91,7 @@ export default function OrganizationPage() {
             <SafeSelector
               safeAddress={selectedSafe}
               onChange={setSelectedSafe}
+              organizationId={organization?.id ?? ''}
             />
             <SafeStats safeAddress={selectedSafe} />
           </div>
@@ -119,6 +120,7 @@ export default function OrganizationPage() {
         <SyncTransactionsDialog
           isOpen={isSyncDialogOpen}
           onClose={() => setIsSyncDialogOpen(false)}
+          organizationId={organization?.id ?? ''}
         />
       </div>
     </Layout>
