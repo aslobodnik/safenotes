@@ -46,7 +46,10 @@ export const safesRouter = createTRPCRouter({
         address: input.address,
         chain: input.chain,
         organizationId: input.organizationId,
-      }),
+      })
+
+      return ctx.db.select().from(safes)
+    }),
   delete: adminProcedure
     .input(
       z.object({
