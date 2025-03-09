@@ -34,19 +34,35 @@ export const safesRouter = createTRPCRouter({
     return safesWithEns
   }),
 
-  // create: adminProcedure
-  //   .input(
-  //     z.object({
-  //       address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
-  //     })
-  //   )
-  //   .mutation(async ({ ctx, input }) => {
-  //     await ctx.db.insert(safes).values({
-  //       address: input.address,
-  //     })
+  // Silly admin-only route that just returns OK
+  sillySuperSecretAdminRoute: adminProcedure
+    .query(async () => {
+      // This route can only be accessed by admins
+      // No input needed, just returns a simple message
+      return {
+        status: "OK",
+        message: "You have super secret admin access! 🎉",
+        secretCode: 12345
+      }
+    }),
 
-  //     return ctx.db.select().from(safes)
-  //   }),
+  create: adminProcedure
+    .input(
+      z.object({
+        address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        chain: z.enum(['ETH', 'ARB', 'UNI']).default('ETH'),
+        organizationId: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.insert(safes).values({
+        address: input.address,
+        chain: input.chain,
+        organizationId: input.organizationId,
+      })
+
+      return ctx.db.select().from(safes)
+    }),
   delete: adminProcedure
     .input(
       z.object({
