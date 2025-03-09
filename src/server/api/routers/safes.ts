@@ -33,19 +33,6 @@ export const safesRouter = createTRPCRouter({
 
     return safesWithEns
   }),
-
-  // Silly admin-only route that just returns OK
-  sillySuperSecretAdminRoute: adminProcedure
-    .query(async () => {
-      // This route can only be accessed by admins
-      // No input needed, just returns a simple message
-      return {
-        status: "OK",
-        message: "You have super secret admin access! 🎉",
-        secretCode: 12345
-      }
-    }),
-
   create: adminProcedure
     .input(
       z.object({

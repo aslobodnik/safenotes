@@ -10,13 +10,45 @@ import { api } from '@/utils/trpc'
 interface SafeSelectorProps {
   safeAddress: string | null
   onChange: (value: string | null) => void
+  organizationId?: string // Optional organization ID parameter
 }
 
 export default function SafeSelector({
   safeAddress,
   onChange,
+  organizationId,
 }: SafeSelectorProps) {
-  const { data: safes, isLoading } = api.safes.getAllSafesWithEns.useQuery()
+  // Fetch all safes with ENS (used when no organizationId is provided)
+  const { data: allSafesWithEns, isLoading: allSafesLoading } = api.safes.getAllSafesWithEns.useQuery(
+    undefined,
+    { enabled: !organizationId }
+  )
+  
+  // Fetch safes for a specific organization
+  const { data: orgSafes, isLoading: orgSafesLoading } = api.safes.getByOrganization.useQuery(
+    { organizationId: organizationId || '' },
+    { enabled: !!organizationId }
+  )
+  
+  // Fetch ENS names for organization safes if needed
+  const { data: orgSafesWithEns, isLoading: orgEnsLoading } = api.safes.getAllSafesWithEns.useQuery(
+    undefined,
+    { 
+      enabled: !!organizationId && !!orgSafes,
+      select: (allSafes) => {
+        // Filter to only include safes from our organization
+        return allSafes.filter(safe => 
+          orgSafes?.some(orgSafe => orgSafe.address === safe.address)
+        )
+      }
+    }
+  )
+  
+  // Determine which data and loading state to use
+  const safes = organizationId ? orgSafesWithEns : allSafesWithEns
+  const isLoading = organizationId 
+    ? (orgSafesLoading || orgEnsLoading) 
+    : allSafesLoading
 
   const handleChange = (value: string) => {
     // Convert "all" back to null when selected
@@ -45,6 +77,11 @@ export default function SafeSelector({
               : `${safe.address.slice(0, 6)}...${safe.address.slice(-4)}`}
           </SelectItem>
         ))}
+        {safes?.length === 0 && (
+          <SelectItem value="empty" disabled>
+            No safes found
+          </SelectItem>
+        )}
       </SelectContent>
     </Select>
   )

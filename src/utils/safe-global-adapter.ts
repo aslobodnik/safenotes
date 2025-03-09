@@ -1,3 +1,5 @@
+import { getAddress } from 'viem'
+
 export interface SafeTransferResponse {
   count: number
   results: SafeTransfer[]
@@ -30,7 +32,8 @@ export async function fetchSafeTransfers(
   safeAddress: string,
   limit: number = 100
 ): Promise<SafeTransferResponse> {
-  const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${safeAddress}/transfers/?limit=${limit}`
+  const checksummedSafeAddress = getAddress(safeAddress)
+  const apiUrl = `https://safe-transaction-mainnet.safe.global/api/v1/safes/${checksummedSafeAddress}/transfers/?limit=${limit}`
   const response = await fetch(apiUrl)
 
   if (!response.ok) {

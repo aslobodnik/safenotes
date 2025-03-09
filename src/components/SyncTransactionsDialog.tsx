@@ -35,23 +35,46 @@ type TransferLimit = (typeof TRANSFER_LIMITS)[number]
 export function SyncTransactionsDialog({
   isOpen,
   onClose,
+  organizationId,
 }: {
   isOpen: boolean
   onClose: () => void
+  organizationId: string
 }) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({})
   const [transferLimit, setTransferLimit] = useState<TransferLimit>(50)
-  const { data: safes } = api.safes.getAllSafesWithEns.useQuery()
+  
+  // Fetch safes only for the specified organization
+  const { data: safes, isLoading: safesLoading } = api.safes.getByOrganization.useQuery(
+    { organizationId },
+    { enabled: isOpen && !!organizationId }
+  )
+  
+  // Add ENS names to safes
+  const { data: safesWithEns, isLoading: ensLoading } = api.safes.getAllSafesWithEns.useQuery(
+    undefined,
+    { 
+      enabled: isOpen && !!safes,
+      select: (allSafesWithEns) => {
+        // Filter to only include safes from our organization
+        return allSafesWithEns.filter(safe => 
+          safes?.some(orgSafe => orgSafe.address === safe.address)
+        )
+      }
+    }
+  )
+  
+  const isLoading = safesLoading || ensLoading
   const utils = api.useUtils()
 
   const { mutate: writeTransfer } = api.transfers.writeTransfer.useMutation()
 
   const handleSync = async () => {
-    if (!safes) return
+    if (!safesWithEns) return
 
     // Initialize all safes as pending
     const initialStatus: SyncStatus = {}
-    safes.forEach((safe) => {
+    safesWithEns.forEach((safe) => {
       initialStatus[safe.address] = {
         status: 'pending',
         progress: { current: 0, total: 0, skipped: 0 },
@@ -60,7 +83,7 @@ export function SyncTransactionsDialog({
     setSyncStatus(initialStatus)
 
     // Sync each safe sequentially
-    for (const safe of safes) {
+    for (const safe of safesWithEns) {
       setSyncStatus((prev) => ({
         ...prev,
         [safe.address]: {
@@ -221,7 +244,7 @@ export function SyncTransactionsDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl bg-white p-0">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle>Sync Transactions</DialogTitle>
+          <DialogTitle>Sync Transactions for Organization</DialogTitle>
         </DialogHeader>
         <div className="p-6 pt-2">
           <div className="mb-4 flex items-center justify-between">
@@ -245,62 +268,68 @@ export function SyncTransactionsDialog({
           </div>
 
           <div className="max-h-[60vh] space-y-3 overflow-y-auto">
-            {safes?.map((safe) => {
-              const status = syncStatus[safe.address]
-              const progress = status?.progress
+            {isLoading ? (
+              <div className="text-center py-4">Loading safes...</div>
+            ) : !safesWithEns || safesWithEns.length === 0 ? (
+              <div className="text-center py-4">No safes found for this organization</div>
+            ) : (
+              safesWithEns.map((safe) => {
+                const status = syncStatus[safe.address]
+                const progress = status?.progress
 
-              return (
-                <div
-                  key={safe.address}
-                  className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex flex-col gap-1">
-                      <span className="font-mono text-sm text-gray-600">
-                        {formatAddress(safe.address)}
-                      </span>
-                      {safe.name && (
-                        <span className="text-sm text-gray-500">
-                          {safe.name}
+                return (
+                  <div
+                    key={safe.address}
+                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-mono text-sm text-gray-600">
+                          {formatAddress(safe.address)}
                         </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {status?.status === 'syncing' ? (
-                        <span className="animate-spin">🔄</span>
-                      ) : (
-                        <span>{getStatusIcon(status?.status)}</span>
-                      )}
-                      {status?.message && (
-                        <span className="text-sm text-red-500">
-                          {status.message}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {progress && (
-                    <div className="mt-3 space-y-2">
-                      <Progress
-                        value={
-                          progress.total
-                            ? (progress.current / progress.total) * 100
-                            : 0
-                        }
-                        className="h-2"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>
-                          {progress.current} / {progress.total} transfers
-                        </span>
-                        {progress.skipped > 0 && (
-                          <span>{progress.skipped} skipped</span>
+                        {safe.name && (
+                          <span className="text-sm text-gray-500">
+                            {safe.name}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {status?.status === 'syncing' ? (
+                          <span className="animate-spin">🔄</span>
+                        ) : (
+                          <span>{getStatusIcon(status?.status)}</span>
+                        )}
+                        {status?.message && (
+                          <span className="text-sm text-red-500">
+                            {status.message}
+                          </span>
                         )}
                       </div>
                     </div>
-                  )}
-                </div>
-              )
-            })}
+                    {progress && (
+                      <div className="mt-3 space-y-2">
+                        <Progress
+                          value={
+                            progress.total
+                              ? (progress.current / progress.total) * 100
+                              : 0
+                          }
+                          className="h-2"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>
+                            {progress.current} / {progress.total} transfers
+                          </span>
+                          {progress.skipped > 0 && (
+                            <span>{progress.skipped} skipped</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
           </div>
           <div className="mt-6 flex justify-end gap-2">
             <Button variant="outline" onClick={onClose}>
@@ -310,8 +339,9 @@ export function SyncTransactionsDialog({
               variant="default"
               className="bg-blue-500 hover:bg-blue-600"
               onClick={handleSync}
+              disabled={isLoading || !safesWithEns || safesWithEns.length === 0}
             >
-              Start Sync ({safes?.length ?? 0} wallets)
+              Start Sync ({safesWithEns?.length ?? 0} wallets)
             </Button>
           </div>
         </div>
