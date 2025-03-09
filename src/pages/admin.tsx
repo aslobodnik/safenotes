@@ -7,12 +7,16 @@ import { api } from '@/utils/trpc'
 export default function Admin() {
   const [newSafe, setNewSafe] = useState('')
   const [newCategory, setNewCategory] = useState('')
+  const [chain, setChain] = useState<'ETH' | 'ARB' | 'UNI'>('ETH')
+  const [organizationId, setOrganizationId] = useState('')
+  const [secretMessage, setSecretMessage] = useState<string | null>(null)
 
   const utils = api.useUtils()
 
   // Queries
   const { data: categories } = api.categories.getAll.useQuery()
   const { data: safes } = api.safes.getAllSafes.useQuery()
+  const { data: organizations } = api.organizations.getAll.useQuery()
 
   // Mutations
   const { mutate: createCategory } = api.categories.create.useMutation({
@@ -34,15 +38,15 @@ export default function Admin() {
     },
   })
 
-  // const { mutate: createSafe } = api.safes.create.useMutation({
-  //   onSuccess: () => {
-  //     setNewSafe('')
-  //     void utils.safes.getAllSafes.invalidate()
-  //   },
-  //   onError: (error) => {
-  //     alert(error.message)
-  //   },
-  // })
+  const { mutate: createSafe, isPending: createSafeLoading } = api.safes.create.useMutation({
+    onSuccess: () => {
+      setNewSafe('')
+      void utils.safes.getAllSafes.invalidate()
+    },
+    onError: (error) => {
+      alert(error.message)
+    },
+  })
 
   const { mutate: deleteSafe } = api.safes.delete.useMutation({
     onSuccess: () => {
@@ -61,8 +65,12 @@ export default function Admin() {
       return
     }
 
-    console.log(`adding safes is disabled`)
-    // createSafe({ address: newSafe })
+    if (!organizationId) {
+      alert('Please select an organization')
+      return
+    }
+
+    createSafe({ address: newSafe, chain, organizationId })
   }
 
   const handleAddCategory = async (e: React.FormEvent) => {
@@ -84,6 +92,17 @@ export default function Admin() {
     deleteCategory({ id })
   }
 
+  // Function to test the silly admin route
+  const testSillyAdminRoute = async () => {
+    try {
+      const result = await utils.safes.sillySuperSecretAdminRoute.fetch()
+      setSecretMessage(`${result.message} Secret code: ${result.secretCode}`)
+    } catch (error) {
+      setSecretMessage("Access denied! You're not an admin or something went wrong.")
+      console.error(error)
+    }
+  }
+
   return (
     <Layout>
       <div>
@@ -96,26 +115,62 @@ export default function Admin() {
             <div>
               <div className="mb-4 rounded-lg border p-6">
                 <h2 className="mb-4 text-xl font-semibold">Add New Safe</h2>
-                <form onSubmit={handleAddSafe}>
-                  <div className="mb-4">
-                    <label htmlFor="safeAddress" className="mb-2 block">
+                <form onSubmit={handleAddSafe} className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="address" className="block text-sm font-medium">
                       Safe Address
                     </label>
                     <input
+                      id="address"
                       type="text"
-                      id="safeAddress"
                       value={newSafe}
                       onChange={(e) => setNewSafe(e.target.value)}
-                      className="w-full rounded border p-2"
                       placeholder="0x..."
-                      required
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="organization" className="block text-sm font-medium">
+                      Organization
+                    </label>
+                    <select
+                      id="organization"
+                      value={organizationId}
+                      onChange={(e) => setOrganizationId(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    >
+                      <option value="">Select an organization</option>
+                      {organizations?.map((org) => (
+                        <option key={org.id} value={org.id}>
+                          {org.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="chain" className="block text-sm font-medium">
+                      Chain
+                    </label>
+                    <select
+                      id="chain"
+                      value={chain}
+                      onChange={(e) => setChain(e.target.value as 'ETH' | 'ARB' | 'UNI')}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    >
+                      <option value="ETH">Ethereum</option>
+                      <option value="ARB">Arbitrum</option>
+                      <option value="UNI">Uniswap</option>
+                    </select>
+                  </div>
+
                   <button
                     type="submit"
-                    className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                    disabled={createSafeLoading}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
                   >
-                    Add Safe
+                    {createSafeLoading ? 'Adding...' : 'Add Safe'}
                   </button>
                 </form>
               </div>
@@ -197,6 +252,25 @@ export default function Admin() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Test Admin Route Section */}
+          <div className="mt-8 rounded-lg border p-6">
+            <h2 className="mb-4 text-xl font-semibold">Test Admin Access</h2>
+            <div className="flex flex-col items-start space-y-4">
+              <button
+                onClick={testSillyAdminRoute}
+                className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              >
+                Test Super Secret Admin Route
+              </button>
+              
+              {secretMessage && (
+                <div className="mt-4 rounded-md bg-gray-100 p-4">
+                  <p className="text-md font-medium">{secretMessage}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
