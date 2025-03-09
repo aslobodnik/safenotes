@@ -91,6 +91,17 @@ export default function Admin() {
     deleteCategory({ id })
   }
 
+  // Function to test the silly admin route
+  const testSillyAdminRoute = async () => {
+    try {
+      const result = await utils.safes.sillySuperSecretAdminRoute.fetch()
+      setSecretMessage(`${result.message} Secret code: ${result.secretCode}`)
+    } catch (error) {
+      setSecretMessage("Access denied! You're not an admin or something went wrong.")
+      console.error(error)
+    }
+  }
+
   return (
     <Layout>
       <div>
@@ -240,6 +251,25 @@ export default function Admin() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Test Admin Route Section */}
+          <div className="mt-8 rounded-lg border p-6">
+            <h2 className="mb-4 text-xl font-semibold">Test Admin Access</h2>
+            <div className="flex flex-col items-start space-y-4">
+              <button
+                onClick={testSillyAdminRoute}
+                className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              >
+                Test Super Secret Admin Route
+              </button>
+              
+              {secretMessage && (
+                <div className="mt-4 rounded-md bg-gray-100 p-4">
+                  <p className="text-md font-medium">{secretMessage}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
