@@ -53,7 +53,10 @@ export default function OrganizationPage() {
     data: categories,
     isLoading: categoriesLoading,
     error: categoriesError,
-  } = api.categories.getAll.useQuery();
+  } = api.categories.getCategoriesByOrganization.useQuery(
+    { organizationId: organization?.id ?? '' },
+    { enabled: !!organization?.id }
+  );
 
   const isLoading = transfersLoading || transferCategoriesLoading || categoriesLoading
   const isError = transfersError || transferCategoriesError || categoriesError
