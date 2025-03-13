@@ -36,6 +36,9 @@ export const organizations = pgTable('organizations', {
 export const categories = pgTable('categories', {
   id: uuid('id').primaryKey().defaultRandom().notNull(),
   name: text('name').notNull().unique(),
+  organizationId: uuid('organization_id').references(() => organizations.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export type CategoryItem = InferSelectModel<typeof categories>
@@ -93,6 +96,7 @@ export type TransferCategoryItem = InferSelectModel<typeof transferCategories>
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   safes: many(safes),
+  categories: many(categories),
 }))
 
 export const safesRelations = relations(safes, ({ one, many }) => ({
@@ -103,7 +107,11 @@ export const safesRelations = relations(safes, ({ one, many }) => ({
   transfers: many(transfers),
 }))
 
-export const categoriesRelations = relations(categories, ({ many }) => ({
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [categories.organizationId],
+    references: [organizations.id],
+  }),
   transfers: many(transferCategories),
 }))
 
