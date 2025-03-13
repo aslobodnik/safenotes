@@ -10,49 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Copy, CheckCircle2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
+import { AddressDisplay } from '@/components/AddressDisplay'
 
-// New component for displaying addresses in a mobile-friendly way
-function AddressDisplay({ address, chain }: { address: string; chain: string }) {
-  const [copied, setCopied] = useState(false)
-
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-  }
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(address)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  return (
-    <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
-      <div className="flex items-center">
-        <span className="mr-2 rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
-          {chain}
-        </span>
-        <span className="font-mono text-sm">{formatAddress(address)}</span>
-      </div>
-      <button
-        onClick={copyToClipboard}
-        className="inline-flex items-center text-blue-500 hover:text-blue-700"
-        title="Copy address"
-      >
-        {copied ? (
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
-        <span className="ml-1 text-xs sm:hidden">Copy</span>
-      </button>
-    </div>
-  )
-}
 
 export default function Admin() {
   const [newSafe, setNewSafe] = useState('')
   const [newCategory, setNewCategory] = useState('')
+  const [newAdmin, setNewAdmin] = useState('')
   const [chain, setChain] = useState<'ETH' | 'ARB' | 'UNI'>('ETH')
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('')
 
@@ -69,6 +34,12 @@ export default function Admin() {
 
   // Fetch categories for the selected organization
   const { data: categories, isLoading: categoriesLoading } = api.categories.getCategoriesByOrganization.useQuery(
+    { organizationId: selectedOrganizationId },
+    { enabled: !!selectedOrganizationId }
+  )
+
+  // Fetch admins for the selected organization
+  const { data: admins, isLoading: adminsLoading } = api.admin.getOrgAdmins.useQuery(
     { organizationId: selectedOrganizationId },
     { enabled: !!selectedOrganizationId }
   )
@@ -119,6 +90,26 @@ export default function Admin() {
     },
   })
 
+  // Admin mutations
+  const { mutate: addAdmin, isPending: addAdminLoading } = api.admin.addAdminToOrg.useMutation({
+    onSuccess: () => {
+      setNewAdmin('')
+      void utils.admin.getOrgAdmins.invalidate({ organizationId: selectedOrganizationId })
+    },
+    onError: (error) => {
+      alert(error.message)
+    },
+  })
+
+  const { mutate: removeAdmin } = api.admin.removeAdminFromOrg.useMutation({
+    onSuccess: () => {
+      void utils.admin.getOrgAdmins.invalidate({ organizationId: selectedOrganizationId })
+    },
+    onError: (error) => {
+      alert(error.message)
+    },
+  })
+
   const handleAddSafe = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -158,6 +149,25 @@ export default function Admin() {
     })
   }
 
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!newAdmin.match(/^0x[a-fA-F0-9]{40}$/)) {
+      alert('Invalid wallet address format')
+      return
+    }
+
+    if (!selectedOrganizationId) {
+      alert('Please select an organization')
+      return
+    }
+
+    addAdmin({
+      organizationId: selectedOrganizationId,
+      walletAddress: newAdmin
+    })
+  }
+
   const handleDeleteSafe = (address: string) => {
     if (confirm('Are you sure you want to delete this safe?')) {
       deleteSafe({ address })
@@ -170,11 +180,21 @@ export default function Admin() {
     }
   }
 
-  const isLoading = orgsLoading || (!!selectedOrganizationId && (safesLoading || categoriesLoading))
+  const handleRemoveAdmin = (walletAddress: string) => {
+    if (confirm('Are you sure you want to remove this admin?')) {
+      removeAdmin({
+        organizationId: selectedOrganizationId,
+        walletAddress
+      })
+    }
+  }
+
+  const isLoading = orgsLoading || (!!selectedOrganizationId && (safesLoading || categoriesLoading || adminsLoading))
+  const orgName = organizations?.find(org => org.id === selectedOrganizationId)?.name
 
   return (
     <Layout>
-      <div>
+      <div className="pb-12">
         <h1 className="mb-4 text-2xl font-bold">Admin</h1>
         <div className="container mx-auto p-4 sm:p-8">
           <h1 className="mb-8 text-3xl font-bold">Admin Dashboard</h1>
@@ -208,7 +228,8 @@ export default function Admin() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+              <div className="h-64 animate-pulse rounded-lg bg-gray-200"></div>
               <div className="h-64 animate-pulse rounded-lg bg-gray-200"></div>
               <div className="h-64 animate-pulse rounded-lg bg-gray-200"></div>
             </div>
@@ -217,14 +238,22 @@ export default function Admin() {
               <p className="text-gray-500">Please select an organization to manage</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {/* Safes Section */}
-              <div>
-                <div className="mb-4 rounded-lg border p-4 sm:p-6">
-                  <h2 className="mb-4 text-xl font-semibold">Add New Safe</h2>
+            <div>
+              {/* Section Headers */}
+              <div className="mb-6 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                <h2 className="text-xl font-semibold">Safes</h2>
+                <h2 className="text-xl font-semibold">Categories</h2>
+                <h2 className="text-xl font-semibold">Admins</h2>
+              </div>
+
+              {/* Input Forms */}
+              <div className="mb-6 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {/* Add Safe Form */}
+                <div className="rounded-lg border p-4">
+                  <h3 className="mb-4 font-medium">Add New Safe</h3>
                   <form onSubmit={handleAddSafe} className="space-y-4">
-                    <div className="space-y-2">
-                      <label htmlFor="address" className="block text-sm font-medium">
+                    <div>
+                      <label htmlFor="address" className="mb-1 block text-sm">
                         Safe Address
                       </label>
                       <input
@@ -237,8 +266,8 @@ export default function Admin() {
                       />
                     </div>
                     
-                    <div className="space-y-2">
-                      <label htmlFor="chain" className="block text-sm font-medium">
+                    <div>
+                      <label htmlFor="chain" className="mb-1 block text-sm">
                         Chain
                       </label>
                       <select
@@ -256,19 +285,77 @@ export default function Admin() {
                     <Button
                       type="submit"
                       disabled={createSafeLoading}
-                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                      className="w-full bg-blue-500 hover:bg-blue-600"
                     >
                       {createSafeLoading ? 'Adding...' : 'Add Safe'}
                     </Button>
                   </form>
                 </div>
 
-                {/* List of Current Safes */}
-                <div className="rounded-lg border p-4 sm:p-6">
-                  <h2 className="mb-4 text-xl font-semibold">
-                    Safes for {organizations?.find(org => org.id === selectedOrganizationId)?.name}
-                  </h2>
-                  <div className="space-y-2">
+                {/* Add Category Form */}
+                <div className="rounded-lg border p-4">
+                  <h3 className="mb-4 font-medium">Add New Category</h3>
+                  <form onSubmit={handleAddCategory} className="space-y-4">
+                    <div>
+                      <label htmlFor="category" className="mb-1 block text-sm">
+                        Category Name
+                      </label>
+                      <input
+                        type="text"
+                        id="category"
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        placeholder="Enter category name"
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full bg-blue-500 hover:bg-blue-600"
+                    >
+                      Add Category
+                    </Button>
+                  </form>
+                </div>
+
+                {/* Add Admin Form */}
+                <div className="rounded-lg border p-4">
+                  <h3 className="mb-4 font-medium">Add Organization Admin</h3>
+                  <form onSubmit={handleAddAdmin} className="space-y-4">
+                    <div>
+                      <label htmlFor="adminAddress" className="mb-1 block text-sm">
+                        Wallet Address
+                      </label>
+                      <input
+                        id="adminAddress"
+                        type="text"
+                        value={newAdmin}
+                        onChange={(e) => setNewAdmin(e.target.value)}
+                        placeholder="0x..."
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={addAdminLoading}
+                      className="w-full bg-purple-600 hover:bg-purple-700"
+                    >
+                      {addAdminLoading ? 'Adding...' : 'Add Admin'}
+                    </Button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Lists */}
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {/* Safes List */}
+                <div className="rounded-lg border p-4">
+                  <h3 className="mb-4 font-medium">
+                    Safes for {orgName}
+                  </h3>
+                  <div className="h-[300px] overflow-y-auto">
                     {safesLoading ? (
                       <p className="text-gray-500">Loading safes...</p>
                     ) : !safes || safes.length === 0 ? (
@@ -278,12 +365,12 @@ export default function Admin() {
                         {safes.map((safe) => (
                           <div 
                             key={safe.address}
-                            className="flex flex-col justify-between p-3 sm:flex-row sm:items-center"
+                            className="flex items-center justify-between p-3"
                           >
                             <AddressDisplay address={safe.address} chain={safe.chain} />
                             <button
                               onClick={() => handleDeleteSafe(safe.address)}
-                              className="mt-2 text-red-500 hover:text-red-700 sm:mt-0"
+                              className="text-red-500 hover:text-red-700"
                             >
                               Delete
                             </button>
@@ -293,42 +380,13 @@ export default function Admin() {
                     )}
                   </div>
                 </div>
-              </div>
 
-              {/* Categories Section */}
-              <div>
-                <div className="mb-4 rounded-lg border p-4 sm:p-6">
-                  <h2 className="mb-4 text-xl font-semibold">Add New Category</h2>
-                  <form onSubmit={handleAddCategory}>
-                    <div className="mb-4">
-                      <label htmlFor="category" className="mb-2 block">
-                        Category Name
-                      </label>
-                      <input
-                        type="text"
-                        id="category"
-                        value={newCategory}
-                        onChange={(e) => setNewCategory(e.target.value)}
-                        className="w-full rounded border p-2"
-                        placeholder="Enter category name"
-                        required
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                    >
-                      Add Category
-                    </Button>
-                  </form>
-                </div>
-
-                {/* List of Current Categories */}
-                <div className="rounded-lg border p-4 sm:p-6">
-                  <h2 className="mb-4 text-xl font-semibold">
-                    Categories for {organizations?.find(org => org.id === selectedOrganizationId)?.name}
-                  </h2>
-                  <div className="space-y-2">
+                {/* Categories List */}
+                <div className="rounded-lg border p-4">
+                  <h3 className="mb-4 font-medium">
+                    Categories for {orgName}
+                  </h3>
+                  <div className="h-[300px] overflow-y-auto">
                     {categoriesLoading ? (
                       <p className="text-gray-500">Loading categories...</p>
                     ) : !categories || categories.length === 0 ? (
@@ -346,6 +404,38 @@ export default function Admin() {
                               onClick={() => handleDeleteCategory(category.id)}
                             >
                               Delete
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Admins List */}
+                <div className="rounded-lg border p-4">
+                  <h3 className="mb-4 font-medium">
+                    Admins for {orgName}
+                  </h3>
+                  <div className="h-[300px] overflow-y-auto">
+                    {adminsLoading ? (
+                      <p className="text-gray-500">Loading admins...</p>
+                    ) : !admins || admins.length === 0 ? (
+                      <p className="text-gray-500">No admins added yet</p>
+                    ) : (
+                      <div className="divide-y rounded-md border">
+                        {admins.map((admin) => (
+                          <div
+                            key={admin.id}
+                            className="flex items-center justify-between p-3"
+                          >
+                            <AddressDisplay address={admin.walletAddress} />
+                            <button
+                              onClick={() => handleRemoveAdmin(admin.walletAddress)}
+                              className="flex items-center text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="mr-1 h-4 w-4" />
+                              <span>Remove</span>
                             </button>
                           </div>
                         ))}

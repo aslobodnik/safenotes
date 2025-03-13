@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { Pencil } from 'lucide-react';
 
 import { EditCategoryDialog } from '@/components/EditCategoryDialog'
 import { TableSkeleton } from '@/components/TableSkeleton'
@@ -395,7 +396,7 @@ export default function TransactionTable({
                         size="sm"
                         onClick={() => handleEditCategory(transfer.transferId)}
                       >
-                        ✏️
+                        <Pencil className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   )}
