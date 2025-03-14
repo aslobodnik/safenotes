@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       'assets.smold.app',
     ],
   },
+  bundlePagesRouterDependencies: true,
 }
 
 export default nextConfig
