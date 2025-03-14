@@ -149,6 +149,7 @@ export default function AdminPage() {
         (admin) => admin.walletAddress.toLowerCase() === userWalletAddress
       );
       setIsAdmin(isOrgAdmin);
+      return;
     }
     router.push(`/${org}`);
   }, [isAdmin, adminsLoading, admins, org, router, session]);

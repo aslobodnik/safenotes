@@ -188,9 +188,6 @@ export default function TransactionTable({
   categories,
   allSafes,
 }: TransactionTableProps) {
-  console.log(
-    `is address selected ${safeAddress} | transfers count for table ${transfers.length}`
-  )
   const { data: session } = useSession()
 
   // TODO: Check if the user is a signer on the Safe. This currently only checks if they are a global admin
