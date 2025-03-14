@@ -133,6 +133,10 @@ export default function AdminPage() {
   
   // Determine if the current user is an admin for this organization
   useEffect(() => {
+    if (adminsLoading) {
+      return;
+    }
+
     const isSuperAdmin = adminAddresses.includes(session?.user?.name || '');
     if (isSuperAdmin) {
       setIsAdmin(true);
