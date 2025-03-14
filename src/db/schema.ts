@@ -33,6 +33,23 @@ export const organizations = pgTable('organizations', {
   createdAt: timestamp('created_at').defaultNow(),
 })
 
+// New table for organization admins
+export const organizationAdmins = pgTable('organization_admins', {
+  id: uuid('id').defaultRandom().notNull(),
+  organizationId: uuid('organization_id')
+    .notNull()
+    .references(() => organizations.id),
+  walletAddress: text('wallet_address').notNull(), // Admin wallet address
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    // Ensure a wallet can only be added once per organization
+    uniqAdminPerOrg: primaryKey({ columns: [table.organizationId, table.walletAddress] }),
+  }
+})
+
+export type OrganizationAdmin = InferSelectModel<typeof organizationAdmins>
+
 export const categories = pgTable('categories', {
   id: uuid('id').primaryKey().defaultRandom().notNull(),
   name: text('name').notNull().unique(),
@@ -97,6 +114,14 @@ export type TransferCategoryItem = InferSelectModel<typeof transferCategories>
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   safes: many(safes),
   categories: many(categories),
+  admins: many(organizationAdmins),
+}))
+
+export const organizationAdminsRelations = relations(organizationAdmins, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [organizationAdmins.organizationId],
+    references: [organizations.id],
+  }),
 }))
 
 export const safesRelations = relations(safes, ({ one, many }) => ({
@@ -130,3 +155,6 @@ export type NewTransfer = typeof transfers.$inferInsert
 
 export type TransferCategory = typeof transferCategories.$inferSelect
 export type NewTransferCategory = typeof transferCategories.$inferInsert
+
+export type OrgAdmin = typeof organizationAdmins.$inferSelect
+export type NewOrgAdmin = typeof organizationAdmins.$inferInsert
