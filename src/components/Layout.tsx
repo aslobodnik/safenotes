@@ -72,11 +72,23 @@ function ConnectButton() {
   const { openConnectModal } = useConnectModal()
   const { openAccountModal } = useAccountModal()
 
+  const handleOpenConnectModal = () => {
+    console.log('openConnectModal, isopenConnectModal', openConnectModal)
+    console.log('openConnectModal available:', !!openConnectModal)
+    openConnectModal?.()
+  }
+
+  const handleOpenAccountModal = () => {
+    console.log('openAccountModal, isopenAccountModal', openAccountModal)
+    console.log('openAccountModal available:', !!openAccountModal)
+    openAccountModal?.()
+  }
+
   if (address && isMounted) {
     return (
       <div
         className="flex items-center gap-2 rounded-md border border-brand pr-2 text-brand hover:cursor-pointer hover:bg-brand/10"
-        onClick={openAccountModal}
+        onClick={handleOpenAccountModal}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -92,7 +104,7 @@ function ConnectButton() {
   return (
     <button
       className="rounded-md bg-brand px-4 py-2 text-white hover:bg-brand/90"
-      onClick={openConnectModal}
+      onClick={handleOpenConnectModal}
     >
       Connect
     </button>
