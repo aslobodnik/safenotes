@@ -4,9 +4,25 @@ import Link from 'next/link'
 import { Layout } from '@/components/Layout'
 import { api } from '@/utils/trpc'
 import ClientCard from '@/components/ClientCard'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Home() {
-  const { data: organizations } = api.organizations.getAll.useQuery()
+  const { data: organizations, isLoading } = api.organizations.getAll.useQuery()
+
+  // Function to render organization card skeletons during loading
+  const renderSkeletons = () => {
+    return Array.from({ length: 4 }).map((_, index) => (
+      <div key={index} className="rounded-lg border p-4 bg-white shadow-sm">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-16 w-16 rounded-md" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </div>
+      </div>
+    ));
+  };
 
   return (
     <>
@@ -117,13 +133,14 @@ export default function Home() {
           <div className="text-xl font-bold">Trusted By</div>
           {/* Card Container */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {
-              organizations?.map((org) => (
-                <ClientCard
-                  key={org.id}
-                  organization={org}
-                />
-              ))
+            {isLoading 
+              ? renderSkeletons()
+              : organizations?.map((org) => (
+                  <ClientCard
+                    key={org.id}
+                    organization={org}
+                  />
+                ))
             }
           </div>
         </div>
