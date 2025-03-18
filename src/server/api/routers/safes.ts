@@ -112,4 +112,26 @@ export const safesRouter = createTRPCRouter({
         )
       })
     }),
+    getByOrganizationWithEns: publicProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const safesList = await ctx.db.query.safes.findMany({
+        where: and(eq(safes.organizationId, input.organizationId), eq(safes.removed, false)),
+      })
+
+      const safesWithEns = await Promise.all(
+        safesList.map(async (safe) => {
+          const name = await publicClient.getEnsName({
+            address: safe.address as Address,
+          })
+
+          return {
+            ...safe,
+            name,
+          }
+        })
+      )
+
+      return safesWithEns
+    }),
 })

@@ -6,7 +6,7 @@ import type { Session } from 'next-auth'
 import { SessionProvider } from 'next-auth/react'
 import { AppType } from 'next/app'
 import { WagmiProvider } from 'wagmi'
-
+import { Toaster } from 'sonner'
 import { wagmiConfig } from '@/lib/web3'
 import '@/styles/globals.css'
 import { api } from '@/utils/trpc'
@@ -24,6 +24,16 @@ const MyApp: AppType<{ session: Session | null }> = ({
           <RainbowKitSiweNextAuthProvider>
             <RainbowKitProvider modalSize="compact">
               <Component {...pageProps} />
+              <Toaster 
+                position="top-center"
+                expand={true}
+                richColors
+                closeButton
+                toastOptions={{
+                  duration: 5000,
+                  style: { zIndex: 9999 }
+                }}
+              />
             </RainbowKitProvider>
           </RainbowKitSiweNextAuthProvider>
         </QueryClientProvider>
