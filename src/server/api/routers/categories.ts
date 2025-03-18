@@ -89,4 +89,14 @@ export const categoriesRouter = createTRPCRouter({
   getAllTransferCategories: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.query.transferCategories.findMany()
   }),
+  updateCategory: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string(),
+      })
+    ).mutation(async ({ ctx, input }) => {
+      await ctx.db.update(categories).set({ name: input.name }).where(eq(categories.id, input.id))
+      return ctx.db.select().from(categories).orderBy(asc(categories.name))
+    })
 })

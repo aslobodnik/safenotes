@@ -1,4 +1,4 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { organizationAdmins, organizations } from '@/db/schema'
@@ -153,6 +153,66 @@ export const adminRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to remove admin',
+          cause: error,
+        });
+      }
+    }),
+
+  // Get all organizations where a wallet address is an admin
+  getOrgsByAdmin: publicProcedure
+    .input(
+      z.object({
+        walletAddress: z.string().refine(
+          (address) => {
+            try {
+              // Validate and normalize the Ethereum address
+              getAddress(address);
+              return true;
+            } catch (error) {
+              console.error('Error validating address:', error)
+              return false;
+            }
+          },
+          {
+            message: 'Invalid Ethereum address format',
+          }
+        ),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        // Normalize the wallet address
+        const normalizedAddress = getAddress(input.walletAddress);
+        
+        // Find all organization IDs where this wallet is an admin
+        const adminOrgs = await ctx.db
+          .select({
+            organizationId: organizationAdmins.organizationId
+          })
+          .from(organizationAdmins)
+          .where(eq(organizationAdmins.walletAddress, normalizedAddress));
+        
+        if (adminOrgs.length === 0) {
+          return [];
+        }
+        
+        // Get the organization IDs
+        const orgIds = adminOrgs.map(org => org.organizationId);
+        
+        // Fetch the complete organization details
+        const orgs = await ctx.db
+          .select()
+          .from(organizations)
+          .where(
+            // Using inArray operator for Drizzle ORM
+            inArray(organizations.id, orgIds)
+          );
+          
+        return orgs;
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to get organizations for admin',
           cause: error,
         });
       }

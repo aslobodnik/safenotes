@@ -51,8 +51,8 @@ export function NewCategoryDialog({ onAddCategory, isLoading = false }: NewCateg
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-blue-500 hover:bg-blue-600 text-white">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
+          <Plus className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">Add Category</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-900">

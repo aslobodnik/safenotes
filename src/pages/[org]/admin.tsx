@@ -26,7 +26,7 @@ import { useEffect } from 'react';
 import { SafeItem, CategoryItem, OrgAdmin } from '@/db/schema';
 import { AddressDisplay } from '@/components/AddressDisplay';
 import { NewSafeDialog, type Chain } from '@/components/AdminPage/NewSafeDialog';
-import { NewCategoryDialog } from '@/components/AdminPage/NewCategoryDialog';
+import { NewCategoryDialog } from '@/components/AdminPage/Categories/NewCategoryDialog';
 import { NewAdminDialog } from '@/components/AdminPage/NewAdminDialog';
 
 export default function AdminPage() {

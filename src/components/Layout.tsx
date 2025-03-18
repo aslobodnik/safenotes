@@ -2,11 +2,15 @@ import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAccount, useEnsAvatar, useEnsName } from 'wagmi'
+import { useRouter } from 'next/router'
 
 import { useIsMounted } from '@/hooks/useIsMounted'
 import { truncateAddress } from '@/lib/utils'
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const currentPath = router.pathname
+  
   return (
     <div className="mx-auto flex max-w-7xl flex-col">
       {/* Header/Navigation Bar */}
@@ -28,12 +32,37 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Right side - Buttons */}
         <div className="flex items-center gap-4">
+          <div className="flex items-center mr-4">
+            <Link 
+              href="/"
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                currentPath === '/' 
+                  ? 'text-brand font-semibold' 
+                  : 'text-gray-700 hover:text-brand'
+              }`}
+            >
+              Home
+            </Link>
+            
+              <Link 
+                href={`/admin`}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  currentPath.startsWith('/admin') 
+                    ? 'text-brand font-semibold' 
+                    : 'text-gray-700 hover:text-brand'
+                }`}
+              >
+                Admin
+              </Link>
+          </div>
           <ConnectButton />
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="p-8">{children}</main>
+      <main className="p-8">
+        {children}
+      </main>
       <footer className="mr-8 flex items-center justify-end gap-4 p-4">
         <Link
           className="transition-colors duration-300 hover:text-brand"
@@ -97,6 +126,7 @@ function ConnectButton() {
           className="h-9 w-9 rounded-l-md"
         />
         <span>{name ?? truncateAddress(address)}</span>
+
       </div>
     )
   }
