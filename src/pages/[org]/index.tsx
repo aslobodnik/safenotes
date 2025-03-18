@@ -73,6 +73,10 @@ export default function OrganizationPage() {
       return;
     }
 
+    if (!admins) {
+      return;
+    }
+
     if (admins && session?.user?.name) {
       const userWalletAddress = session.user.name.toLowerCase();
       const isOrgAdmin = admins.some(
@@ -203,6 +207,7 @@ export default function OrganizationPage() {
             safeAddress={selectedSafe}
             isLoading={isLoading}
             allSafes={safes || []}
+            isAdmin={isAdmin}
           />
         ) : null}
         {isError && <div> transfers error </div>}

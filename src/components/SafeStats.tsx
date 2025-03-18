@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Users, Wallet } from 'lucide-react'
-import { Address } from 'viem'
+import { Address, getAddress } from 'viem'
 
 import {
   HoverCard,
@@ -35,8 +35,10 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
   const { data: signersData } = useQuery({
     queryKey: ['safe-info', safeAddress],
     queryFn: async () => {
+      if (!safeAddress) return null
+      const normalizedSafeAddress = getAddress(safeAddress)
       const safeApiUrl = new URL(
-        `/api/v1/safes/${safeAddress}/`,
+        `/api/v1/safes/${normalizedSafeAddress}/`,
         process.env.NEXT_PUBLIC_SAFES_API_URL
       )
 
@@ -53,8 +55,10 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
   const { data: balances } = useQuery({
     queryKey: ['safe-balances', safeAddress],
     queryFn: async () => {
+      if (!safeAddress) return null
+      const normalizedSafeAddress = getAddress(safeAddress)
       const safeApiUrl = new URL(
-        `/api/v1/safes/${safeAddress}/balances/`,
+        `/api/v1/safes/${normalizedSafeAddress}/balances/`,
         process.env.NEXT_PUBLIC_SAFES_API_URL
       )
       safeApiUrl.searchParams.set('trusted', 'true')
@@ -76,26 +80,28 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
       if (!signersData) return []
 
       const names = await Promise.all(
-        signersData.owners.map(async (address: string) => {
-          const name = await publicClient.getEnsName({
-            address: address as Address,
-          })
+        signersData.owners
+          .map((address: string) => getAddress(address))
+          .map(async (address: string) => {
+            const name = await publicClient.getEnsName({
+              address: address as Address,
+            })
 
-          let avatar = null
-          if (name) {
-            try {
-              avatar = await publicClient.getEnsAvatar({ name })
-            } catch (error) {
-              console.error('Failed to fetch ENS avatar:', error)
+            let avatar = null
+            if (name) {
+              try {
+                avatar = await publicClient.getEnsAvatar({ name })
+              } catch (error) {
+                console.error('Failed to fetch ENS avatar:', error)
+              }
             }
-          }
 
-          return {
-            address,
-            name,
-            avatar,
-          }
-        })
+            return {
+              address,
+              name,
+              avatar,
+            }
+          })
       )
 
       return names
@@ -130,31 +136,31 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
             <ul className="space-y-2">
               {isEnsNamesLoading
                 ? // Loading skeletons
-                  Array.from({ length: signersData?.owners?.length || 3 }).map(
-                    (_, i) => (
-                      <li key={i} className="flex items-center text-sm">
-                        <div className="mr-2 h-6 w-6 animate-pulse rounded-full bg-neutral-200"></div>
-                        <div className="h-4 w-32 animate-pulse rounded bg-neutral-200"></div>
-                      </li>
-                    )
-                  )
-                : ensNames?.map(({ address, name, avatar }) => (
-                    <li key={address} className="flex items-center text-sm">
-                      {avatar ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={avatar}
-                          alt={name || address}
-                          className="mr-2 rounded-full"
-                          width={24}
-                          height={24}
-                        />
-                      ) : (
-                        <div className="mr-2 h-6 w-6 rounded-full bg-brand"></div>
-                      )}{' '}
-                      {name || `${address.slice(0, 6)}...${address.slice(-4)}`}
+                Array.from({ length: signersData?.owners?.length || 3 }).map(
+                  (_, i) => (
+                    <li key={i} className="flex items-center text-sm">
+                      <div className="mr-2 h-6 w-6 animate-pulse rounded-full bg-neutral-200"></div>
+                      <div className="h-4 w-32 animate-pulse rounded bg-neutral-200"></div>
                     </li>
-                  ))}
+                  )
+                )
+                : ensNames?.map(({ address, name, avatar }) => (
+                  <li key={address} className="flex items-center text-sm">
+                    {avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={avatar}
+                        alt={name || address}
+                        className="mr-2 rounded-full"
+                        width={24}
+                        height={24}
+                      />
+                    ) : (
+                      <div className="mr-2 h-6 w-6 rounded-full bg-brand"></div>
+                    )}{' '}
+                    {name || `${address.slice(0, 6)}...${address.slice(-4)}`}
+                  </li>
+                ))}
             </ul>
           </div>
         </HoverCardContent>
@@ -185,12 +191,12 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
                     ).toLocaleString(undefined, {
                       minimumFractionDigits:
                         balance.token?.symbol === 'ETH' ||
-                        balance.token?.symbol === 'WETH'
+                          balance.token?.symbol === 'WETH'
                           ? 1
                           : 0,
                       maximumFractionDigits:
                         balance.token?.symbol === 'ETH' ||
-                        balance.token?.symbol === 'WETH'
+                          balance.token?.symbol === 'WETH'
                           ? 1
                           : 0,
                     })}

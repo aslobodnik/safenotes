@@ -133,6 +133,10 @@ export default function AdminPage() {
   
   // Determine if the current user is an admin for this organization
   useEffect(() => {
+    if (adminsLoading) {
+      return;
+    }
+
     const isSuperAdmin = adminAddresses.includes(session?.user?.name || '');
     if (isSuperAdmin) {
       setIsAdmin(true);
@@ -145,6 +149,7 @@ export default function AdminPage() {
         (admin) => admin.walletAddress.toLowerCase() === userWalletAddress
       );
       setIsAdmin(isOrgAdmin);
+      return;
     }
     router.push(`/${org}`);
   }, [isAdmin, adminsLoading, admins, org, router, session]);
