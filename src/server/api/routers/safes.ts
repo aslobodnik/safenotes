@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { Address } from 'viem'
 import { z } from 'zod'
 
@@ -8,6 +8,7 @@ import {
   adminProcedure,
   createTRPCRouter,
   publicProcedure,
+  protectedProcedure
 } from '@/server/api/trpc'
 
 export const safesRouter = createTRPCRouter({
@@ -33,7 +34,7 @@ export const safesRouter = createTRPCRouter({
 
     return safesWithEns
   }),
-  create: adminProcedure
+  create: protectedProcedure
     .input(
       z.object({
         address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
@@ -61,7 +62,7 @@ export const safesRouter = createTRPCRouter({
       return ctx.db.select().from(safes)
     }),
 
-  softDelete: adminProcedure
+  softDelete: protectedProcedure
     .input(
       z.object({
         address: z.string(),
@@ -104,9 +105,11 @@ export const safesRouter = createTRPCRouter({
   getByOrganization: publicProcedure
     .input(z.object({ organizationId: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db
-        .select()
-        .from(safes)
-        .where(eq(safes.organizationId, input.organizationId));
+      return ctx.db.query.safes.findMany({
+        where: and(
+          eq(safes.organizationId, input.organizationId),
+          eq(safes.removed, false)
+        )
+      })
     }),
 })

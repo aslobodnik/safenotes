@@ -51,8 +51,21 @@ export const categoriesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.delete(categories).where(eq(categories.id, input.id))
-      return ctx.db.select().from(categories).orderBy(asc(categories.name))
+      // First check if the category is associated with any transfers
+      const associatedTransfers = await ctx.db
+        .select()
+        .from(transferCategories)
+        .where(eq(transferCategories.categoryId, input.id));
+      
+      // If there is more than one transfer, throw an error
+      if (associatedTransfers.length > 0) {
+        throw new Error("Cannot delete category that is associated with transfers");
+      }
+      
+      // If no transfers are associated, proceed with deletion
+      await ctx.db.delete(categories).where(eq(categories.id, input.id));
+      
+      return ctx.db.select().from(categories).orderBy(asc(categories.name));
     }),
   getTransferCategories: publicProcedure
     .input(

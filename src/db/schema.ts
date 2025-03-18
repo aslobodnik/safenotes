@@ -66,7 +66,7 @@ export const safes = pgTable('safes', {
   organizationId: uuid('organization_id')
     .notNull()
     .references(() => organizations.id),
-  removed: boolean('removed').default(false),
+  removed: boolean('removed').default(false).notNull(),
   removedAt: timestamp('removed_at'),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => {
