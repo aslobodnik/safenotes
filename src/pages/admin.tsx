@@ -57,7 +57,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <div className="container mx-auto p-4 sm:p-8">
+      <div className="space-y-4">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>

@@ -2,64 +2,61 @@ import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { api } from '@/utils/trpc'
-import { SafesRow } from './SafesRow'
-import { NewSafeDialog } from './NewSafeDialog'
-import { Safe } from '@/db/schema'
+import { OrgAdmin } from '@/db/schema'
+import { AdminRow } from './AdminRow'
+import { NewAdminDialog } from './NewAdminDialog'
 
-interface SafesContainerProps {
+interface AdminsContainerProps {
   organizationId: string
-  safes: Array<Safe & { name?: string }>
+  admins: Array<OrgAdmin>
   isLoading: boolean
   isAdmin: boolean
 }
 
-export function SafesContainer({ organizationId, safes, isLoading, isAdmin }: SafesContainerProps) {
+export function AdminsContainer({ organizationId, admins, isLoading, isAdmin }: AdminsContainerProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const utils = api.useUtils()
 
-  // Create safe mutation
-  const { mutate: createSafe, isPending: createLoading } = api.safes.create.useMutation({
+  // Create admin mutation
+  const { mutate: createAdmin, isPending: createLoading } = api.admin.addAdminToOrg.useMutation({
     onSuccess: () => {
-      utils.safes.getByOrganizationWithEns.invalidate({ organizationId })
+      utils.admin.getOrgAdmins.invalidate({ organizationId })
     }
   })
 
-  // Filter safes based on search term (check both address and ENS name)
-  const filteredSafes = safes?.filter(safe => {
+  // Filter admins based on search term
+  const filteredAdmins = admins?.filter(admin => {
     const searchLower = searchTerm.toLowerCase()
-    const addressMatch = safe.address.toLowerCase().includes(searchLower)
-    const ensMatch = safe.name?.toLowerCase().includes(searchLower)
-    
-    return addressMatch || ensMatch
+    return admin.walletAddress.toLowerCase().includes(searchLower)
   }) || []
 
-  const handleAddSafe = (address: string) => {
+  const handleAddAdmin = (address: string) => {
     if (!address.trim()) return
     
-    createSafe({
-      address: address.trim(),
+    createAdmin({
+      walletAddress: address.trim(),
       organizationId
     })
   }
 
-  const invalidateSafes = () => {
-    utils.safes.getByOrganizationWithEns.invalidate({ organizationId })
+  const invalidateAdmins = () => {
+    utils.admin.getOrgAdmins.invalidate({ organizationId })
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {/* Left side - Description */}
       <div className="md:col-span-1">
-        <h3 className="text-xl font-semibold mb-4">Safes</h3>
+        <h3 className="text-xl font-semibold mb-4">Admins</h3>
         <p className="text-gray-500">
-          Manage safe addresses for your organization. Add Safe wallets for tracking transactions and categorizing them.
+          Manage admin users for your organization. Admins can add and remove safes, categories, and other admins.
         </p>
         <p className="text-gray-500 mt-4">
-          Each safe can have transactions categorized for easier accounting and reporting.
+          Each admin needs to have a valid Ethereum wallet address.
         </p>
       </div>
 
-      {/* Right side - Safes Table */}
+      {/* Right side - Admins Table */}
       <div className="md:col-span-2">
         {/* Search and Add section */}
         <div className="border rounded-md overflow-hidden">
@@ -68,22 +65,22 @@ export function SafesContainer({ organizationId, safes, isLoading, isAdmin }: Sa
               <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 <Input
-                  placeholder="Search safes by address or ENS..."
+                  placeholder="Search admins by wallet address..."
                   className="pl-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               {isAdmin && (
-                <NewSafeDialog
-                  onAddSafe={handleAddSafe}
+                <NewAdminDialog
+                  onAddAdmin={handleAddAdmin}
                   isLoading={createLoading}
                 />
               )}
             </div>
           </div>
 
-          {/* Safes List */}
+          {/* Admins List */}
           <div className="p-4">
             {isLoading ? (
               <div className="space-y-4">
@@ -91,24 +88,24 @@ export function SafesContainer({ organizationId, safes, isLoading, isAdmin }: Sa
                 <div className="h-10 bg-gray-200 animate-pulse rounded-md"></div>
                 <div className="h-10 bg-gray-200 animate-pulse rounded-md"></div>
               </div>
-            ) : filteredSafes.length > 0 ? (
+            ) : filteredAdmins.length > 0 ? (
               <div>
-                {filteredSafes.map(safe => (
-                  <SafesRow
-                    key={safe.address}
-                    safe={safe}
+                {filteredAdmins.map(admin => (
+                  <AdminRow
+                    key={admin.walletAddress}
+                    admin={admin}
                     canEditOrDelete={isAdmin}
-                    onDeleteSuccess={invalidateSafes}
+                    onDeleteSuccess={invalidateAdmins}
                   />
                 ))}
               </div>
             ) : searchTerm ? (
               <div className="text-gray-500 py-4 text-center">
-                No safes found matching &quot;{searchTerm}&quot;
+                No admins found matching &quot;{searchTerm}&quot;
               </div>
             ) : (
               <div className="text-gray-500 py-4 text-center">
-                No safes found. Add your first safe to get started.
+                No admins found. Add your first admin to get started.
               </div>
             )}
           </div>
