@@ -13,7 +13,7 @@ interface AdminDesktopViewProps {
     orgId: string;
     categories: Category[];
     safes: (Safe & { name?: string })[];
-    admins: OrgAdmin[];
+    admins: (OrgAdmin & { ensName?: string })[];
     isAdmin: boolean;
     isLoading: boolean;
 }

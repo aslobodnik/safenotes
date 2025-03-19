@@ -38,7 +38,7 @@ export function AdminContainer({ orgId }: AdminContainerProps) {
         data: admins,
         isLoading: adminsLoading,
         error: adminsError
-    } = api.admin.getOrgAdmins.useQuery(
+    } = api.admin.getOrgAdminsWithEnsName.useQuery(
         { organizationId: orgId },
         { enabled: !!orgId }
     )
@@ -95,7 +95,7 @@ export function AdminContainer({ orgId }: AdminContainerProps) {
                     orgId={orgId} 
                     categories={categories || []} 
                     safes={safes ? safes.map(safe => ({ ...safe, name: safe.name || undefined })) : []} 
-                    admins={admins || []} 
+                    admins={admins ? admins.map(admin => ({ ...admin, ensName: admin.ensName || undefined })) : []} 
                     isAdmin={isAdmin} 
                     isLoading={isLoading} 
                 />
@@ -105,7 +105,7 @@ export function AdminContainer({ orgId }: AdminContainerProps) {
                     orgId={orgId} 
                     categories={categories || []} 
                     safes={safes ? safes.map(safe => ({ ...safe, name: safe.name || undefined })) : []} 
-                    admins={admins || []} 
+                    admins={admins ? admins.map(admin => ({ ...admin, ensName: admin.ensName || undefined })) : []} 
                     isAdmin={isAdmin} 
                     isLoading={isLoading} 
                 />

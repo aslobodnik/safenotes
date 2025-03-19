@@ -7,7 +7,7 @@ import { OrgAdmin } from '@/db/schema'
 import { toast } from 'sonner'
 
 interface AdminRowProps {
-  admin: OrgAdmin
+  admin: OrgAdmin & { ensName?: string }
   canEditOrDelete: boolean
   onDeleteSuccess: () => void
 }
@@ -65,18 +65,23 @@ export function AdminRow({ admin, onDeleteSuccess, canEditOrDelete }: AdminRowPr
     <>
       <div className="flex items-center justify-between py-3 border-b border-gray-100 group">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-600 font-mono text-sm">
-              {truncateAddress(admin.walletAddress)}
-            </span>
-            <a 
+          <div className="flex flex-col gap-2">
+            {admin.ensName && (
+              <span className="text-gray-900 font-medium">{admin.ensName}</span>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 font-mono text-sm">
+                {truncateAddress(admin.walletAddress)}
+              </span>
+              <a 
               href={getEtherscanLink(admin.walletAddress)} 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-600"
             >
               <ExternalLink size={14} />
-            </a>
+              </a>
+            </div>
           </div>
         </div>
         {canEditOrDelete && (

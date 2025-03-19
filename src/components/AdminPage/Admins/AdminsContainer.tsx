@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 
 interface AdminsContainerProps {
   organizationId: string
-  admins: Array<OrgAdmin>
+  admins: Array<OrgAdmin & { ensName?: string }>
   isLoading: boolean
   isAdmin: boolean
 }

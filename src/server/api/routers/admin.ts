@@ -1,5 +1,7 @@
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
+import { publicClient } from '@/lib/web3'
+import { Address } from 'viem'
 
 import { organizationAdmins, organizations } from '@/db/schema'
 import {
@@ -220,5 +222,25 @@ export const adminRouter = createTRPCRouter({
           cause: error,
         });
       }
+    }),
+    getOrgAdminsWithEnsName: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.string().uuid(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const admins = await ctx.db
+        .select()
+        .from(organizationAdmins)
+        .where(eq(organizationAdmins.organizationId, input.organizationId));
+    
+        const adminsWithEnsName = await Promise.all(admins.map(async (admin) => {
+          const ensName = await publicClient.getEnsName({
+            address: admin.walletAddress as Address,
+          })
+          return { ...admin, ensName }
+        }))
+        return adminsWithEnsName
     }),
 });
