@@ -8,6 +8,7 @@ import {
   timestamp,
   uuid,
   primaryKey,
+  unique,
 } from 'drizzle-orm/pg-core'
 
 // Define transfer type enum
@@ -52,10 +53,15 @@ export type OrganizationAdmin = InferSelectModel<typeof organizationAdmins>
 
 export const categories = pgTable('categories', {
   id: uuid('id').primaryKey().defaultRandom().notNull(),
-  name: text('name').notNull().unique(),
-  organizationId: uuid('organization_id').references(() => organizations.id),
+  name: text('name').notNull(),
+  organizationId: uuid('organization_id').references(() => organizations.id).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+  return {
+    // Ensure category names are unique within an organization but keep id as primary key
+    uniqNamePerOrg: unique('unique_org_category_name').on(table.organizationId, table.name),
+  }
 })
 
 export type CategoryItem = InferSelectModel<typeof categories>
