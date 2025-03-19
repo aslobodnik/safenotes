@@ -10,6 +10,7 @@ import {
   publicProcedure,
   protectedProcedure
 } from '@/server/api/trpc'
+import { TRPCError } from '@trpc/server'
 
 export const safesRouter = createTRPCRouter({
   getAllSafes: publicProcedure.query(async ({ ctx }) => {
@@ -43,6 +44,42 @@ export const safesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Check if the safe already exists in the database
+      const existingSafe = await ctx.db.select()
+        .from(safes)
+        .where(
+          and(
+            eq(safes.address, input.address),
+            eq(safes.organizationId, input.organizationId)
+          )
+        )
+        .limit(1)
+
+      if (existingSafe.length > 0 && !existingSafe[0].removed) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `Safe '${input.address}' already exists for this organization`,
+        });
+      }
+
+      // If safe exists, restore it instead of creating a new one
+      if (existingSafe.length > 0 && existingSafe[0].removed) {
+        await ctx.db
+          .update(safes)
+          .set({
+            removed: false,
+            removedAt: null,
+          })
+          .where(
+            and(
+              eq(safes.address, input.address),
+              eq(safes.organizationId, input.organizationId)
+            )
+          )
+        return ctx.db.select().from(safes)
+      }
+
+      // If safe doesn't exist, insert it
       await ctx.db.insert(safes).values({
         address: input.address,
         chain: input.chain,

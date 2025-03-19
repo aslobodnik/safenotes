@@ -5,6 +5,7 @@ import { api } from '@/utils/trpc'
 import { SafesRow } from './SafesRow'
 import { NewSafeDialog } from './NewSafeDialog'
 import { Safe } from '@/db/schema'
+import { toast } from 'sonner'
 
 interface SafesContainerProps {
   organizationId: string
@@ -21,6 +22,16 @@ export function SafesContainer({ organizationId, safes, isLoading, isAdmin }: Sa
   const { mutate: createSafe, isPending: createLoading } = api.safes.create.useMutation({
     onSuccess: () => {
       utils.safes.getByOrganizationWithEns.invalidate({ organizationId })
+      toast.success("Safe added successfully", {
+        duration: 5000,
+      })
+    },
+    onError: (error) => {
+      console.error('Error adding safe:', error)
+      toast.error("Error adding safe", {
+        description: error.message || "An unexpected error occurred. Please try again.",
+        duration: 5000,
+      })
     }
   })
 

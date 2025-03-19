@@ -5,6 +5,7 @@ import { api } from '@/utils/trpc'
 import { OrgAdmin } from '@/db/schema'
 import { AdminRow } from './AdminRow'
 import { NewAdminDialog } from './NewAdminDialog'
+import { toast } from 'sonner'
 
 interface AdminsContainerProps {
   organizationId: string
@@ -21,6 +22,16 @@ export function AdminsContainer({ organizationId, admins, isLoading, isAdmin }: 
   const { mutate: createAdmin, isPending: createLoading } = api.admin.addAdminToOrg.useMutation({
     onSuccess: () => {
       utils.admin.getOrgAdmins.invalidate({ organizationId })
+      toast.success("Admin added successfully", {
+        duration: 5000,
+      })
+    },
+    onError: (error) => {
+        console.error('Error adding admin:', error)
+        toast.error("Error adding admin", {
+            description: error.message || "An unexpected error occurred. Please try again.",
+            duration: 5000,
+          })
     }
   })
 

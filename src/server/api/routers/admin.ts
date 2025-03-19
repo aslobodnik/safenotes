@@ -129,9 +129,20 @@ export const adminRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      try {
         // Normalize the wallet address
         const normalizedAddress = getAddress(input.walletAddress);
+        // Check if this is the last admin in the organization
+        const admins = await ctx.db
+          .select()
+          .from(organizationAdmins)
+          .where(eq(organizationAdmins.organizationId, input.organizationId));
+          
+        if (admins.length <= 1) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot remove the last admin from an organization',
+          });
+        }
 
         // Remove the admin
         await ctx.db
@@ -149,13 +160,6 @@ export const adminRouter = createTRPCRouter({
           .from(organizationAdmins)
           .where(eq(organizationAdmins.organizationId, input.organizationId))
           .orderBy(asc(organizationAdmins.createdAt));
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to remove admin',
-          cause: error,
-        });
-      }
     }),
 
   // Get all organizations where a wallet address is an admin

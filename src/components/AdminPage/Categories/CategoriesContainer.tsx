@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { api } from '@/utils/trpc'
 import { CategoriesRow } from '@/components/AdminPage/Categories/CategoriesRow'
 import { NewCategoryDialog } from '@/components/AdminPage/Categories/NewCategoryDialog'
-
+import { toast } from 'sonner'
 interface CategoriesContainerProps {
     organizationId: string
     categories: Array<{
@@ -23,6 +23,16 @@ export function CategoriesContainer({ organizationId, categories, isLoading, isA
     const { mutate: createCategory, isPending: createLoading } = api.categories.create.useMutation({
         onSuccess: () => {
             utils.categories.getCategoriesByOrganization.invalidate({ organizationId })
+            toast.success("Category added successfully", {
+                duration: 5000,
+            })
+        },
+        onError: (error) => {
+            console.error('Error adding category:', error)
+            toast.error("Error adding category", {
+                description: error.message || "An unexpected error occurred. Please try again.",
+                duration: 5000,
+            })
         }
     })
 

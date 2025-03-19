@@ -7,7 +7,7 @@ import { Shapes, Wallet, Users } from 'lucide-react'
 import { CategoriesContainer } from './Categories/CategoriesContainer'
 import { SafesContainer } from './Safes/SafesContainer'
 import { AdminsContainer } from './Admins/AdminsContainer'
-import { Organization, Category, Safe, OrgAdmin} from '@/db/schema'
+import { Category, Safe, OrgAdmin} from '@/db/schema'
 
 interface AdminDesktopViewProps {
     orgId: string;

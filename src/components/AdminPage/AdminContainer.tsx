@@ -1,10 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/utils/trpc'
-import { cn } from '@/lib/utils'
-import { Users, Wallet, Shapes } from 'lucide-react'
-import { CategoriesContainer } from './Categories/CategoriesContainer'
-import { SafesContainer } from './Safes/SafesContainer'
 import { adminAddresses } from '@/lib/auth';
 import { useSession } from 'next-auth/react';
 import AdminDesktopView from './AdminDesktopView';
@@ -16,8 +11,6 @@ interface AdminContainerProps {
 
 export function AdminContainer({ orgId }: AdminContainerProps) {
     const { data: session } = useSession();
-
-    const [activeTab, setActiveTab] = useState('categories')
     const [isAdmin, setIsAdmin] = useState(false);
 
     // Fetch categories for this organization

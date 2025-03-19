@@ -24,6 +24,9 @@ export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canE
   // Delete category mutation
   const { mutate: deleteCategory, isPending: deleteLoading } = api.categories.delete.useMutation({
     onSuccess: () => {
+      toast.success('Category deleted successfully', {
+        duration: 5000,
+      })
       if (onDeleteSuccess) onDeleteSuccess()
       setDeleteDialogOpen(false)
     },

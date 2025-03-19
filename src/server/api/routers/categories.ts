@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm'
+import { asc, eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { categories, transferCategories } from '@/db/schema'
@@ -7,6 +7,7 @@ import {
   publicProcedure,
   protectedProcedure,
 } from '@/server/api/trpc'
+import { TRPCError } from '@trpc/server'
 
 export const categoriesRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
@@ -33,6 +34,26 @@ export const categoriesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Check if the category already exists for the organization
+      const existingCategory = await ctx.db
+        .select()
+        .from(categories)
+        .where(
+          and(
+            eq(categories.name, input.name),
+            eq(categories.organizationId, input.organizationId)
+          )
+        )
+        .limit(1);
+      
+      // If category exists, throw an error
+      if (existingCategory.length > 0) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `Category '${input.name}' already exists for this organization`,
+        });
+      }
+
       await ctx.db.insert(categories).values({
         name: input.name,
         organizationId: input.organizationId,
@@ -59,7 +80,10 @@ export const categoriesRouter = createTRPCRouter({
       
       // If there is more than one transfer, throw an error
       if (associatedTransfers.length > 0) {
-        throw new Error("Cannot delete category that is associated with transfers");
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: "Cannot delete category that is associated with transfers",
+        });
       }
       
       // If no transfers are associated, proceed with deletion

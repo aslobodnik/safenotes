@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { TabsContent } from '@/components/ui/tabs'
 import { 
     Select, 
     SelectContent, 
