@@ -117,7 +117,7 @@ export default function AdminMobileView({ orgId, categories, safes, admins, isAd
 
             <div className="relative w-full">
                 {/* Categories Content */}
-                <div className={`${activeTab === 'categories' ? 'block' : 'hidden'} p-6 rounded-lg bg-white border border-gray-100 relative w-full`}>
+                <div className={`${activeTab === 'categories' ? 'block' : 'hidden'} rounded-lg bg-white relative w-full`}>
                     {isLoading ? (
                         <div className="space-y-4">
                             <div className="h-10 bg-gray-200 animate-pulse rounded-md w-full max-w-md"></div>
@@ -135,7 +135,7 @@ export default function AdminMobileView({ orgId, categories, safes, admins, isAd
                 </div>
 
                 {/* Safes Content */}
-                <div className={`${activeTab === 'safes' ? 'block' : 'hidden'} p-6 rounded-lg bg-white border border-gray-100 relative w-full`}>
+                <div className={`${activeTab === 'safes' ? 'block' : 'hidden'} rounded-lg bg-white relative w-full`}>
                     {isLoading ? (
                         <div className="space-y-4">
                             <div className="h-10 bg-gray-200 animate-pulse rounded-md w-full max-w-md"></div>
@@ -153,7 +153,7 @@ export default function AdminMobileView({ orgId, categories, safes, admins, isAd
                 </div>
 
                 {/* Admins Content */}
-                <div className={`${activeTab === 'admins' ? 'block' : 'hidden'} p-6 rounded-lg bg-white border border-gray-100 relative w-full`}>
+                <div className={`${activeTab === 'admins' ? 'block' : 'hidden'} rounded-lg bg-white relative w-full`}>
                     {isLoading ? (
                         <div className="space-y-4">
                             <div className="h-10 bg-gray-200 animate-pulse rounded-md w-full max-w-md"></div>

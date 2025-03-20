@@ -102,8 +102,8 @@ export function AdminRow({ admin, onDeleteSuccess, canEditOrDelete }: AdminRowPr
       <ConfirmDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        headerText="Remove Admin"
-        contextText={`Are you sure you want to remove this admin (${truncateAddress(admin.walletAddress)})? This action cannot be undone.`}
+        headerText={`Remove admin ${admin.ensName || truncateAddress(admin.walletAddress)}?`}
+        contextText={`This admin will no longer have access to this organization.`}
         onDelete={handleConfirmDelete}
         onCancel={handleCancelDelete}
         isLoading={deleteLoading}

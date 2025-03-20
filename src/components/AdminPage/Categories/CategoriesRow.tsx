@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Trash, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { api } from '@/utils/trpc'
@@ -14,12 +14,15 @@ interface CategoriesRowProps {
   canEditOrDelete: boolean
   onDeleteSuccess?: () => void
   onUpdateSuccess?: () => void
+  onEdit: () => void
+  organizationId?: string
 }
 
-export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canEditOrDelete }: CategoriesRowProps) {
+export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canEditOrDelete, onEdit, organizationId }: CategoriesRowProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedName, setEditedName] = useState(category.name)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const utils = api.useUtils()
 
   // Delete category mutation
   const { mutate: deleteCategory, isPending: deleteLoading } = api.categories.delete.useMutation({
@@ -53,7 +56,6 @@ export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canE
 
   const handleConfirmDelete = () => {
     deleteCategory({ id: category.id })
-    setDeleteDialogOpen(false)
   }
 
   const handleCancelDelete = () => {
@@ -63,9 +65,14 @@ export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canE
   const handleUpdate = () => {
     if (editedName.trim() === '') return
     
+    if (!organizationId) {
+      console.error('organizationId is required for updating category')
+      return
+    }
+    
     updateCategory({
       id: category.id,
-      name: editedName.trim()
+      name: editedName.trim(),
     })
   }
 
@@ -112,10 +119,10 @@ export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canE
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => setIsEditing(true)}
+                  onClick={onEdit}
                   className="h-8 w-8 p-0"
                 >
-                  <Pencil size={16} className="text-gray-500" />
+                  <Pencil className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -124,7 +131,7 @@ export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canE
                   className="h-8 w-8 p-0"
                   disabled={deleteLoading}
                 >
-                  <Trash2 size={16} className="text-gray-500" />
+                  <Trash className="h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -135,8 +142,8 @@ export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canE
       <ConfirmDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        headerText="Delete Category"
-        contextText={`Are you sure you want to delete "${category.name}"? This action cannot be undone.`}
+        headerText={`Remove category ${category.name}?`}
+        contextText={`This will permanently delete the category "${category.name}". This action cannot be undone.`}
         onDelete={handleConfirmDelete}
         onCancel={handleCancelDelete}
         isLoading={deleteLoading}

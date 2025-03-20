@@ -99,8 +99,8 @@ export function SafesRow({ safe, onDeleteSuccess, canEditOrDelete }: SafesRowPro
       <ConfirmDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        headerText="Remove Safe"
-        contextText={`Are you sure you want to remove the safe ${safe.name || truncateAddress(safe.address)}? This action cannot be undone.`}
+        headerText={`Remove safe ${safe.name || truncateAddress(safe.address)}?`}
+        contextText={`Transfers from this safe will no longer be visible.`}
         onDelete={handleConfirmDelete}
         onCancel={handleCancelDelete}
         isLoading={deleteLoading}

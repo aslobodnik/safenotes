@@ -47,12 +47,15 @@ export function NewCategoryDialog({ onAddCategory, isLoading = false }: NewCateg
     setOpen(false)
   }
   
+  // Check if the button should be disabled (empty name or loading)
+  const isDisabled = isLoading || !name.trim()
+  
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-blue-500 hover:bg-blue-600 text-white">
           <Plus className="h-4 w-4 md:mr-2" />
-          <span className="hidden md:inline">Add Category</span>
+          <span className="hidden md:inline">Add</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-900">
@@ -70,7 +73,12 @@ export function NewCategoryDialog({ onAddCategory, isLoading = false }: NewCateg
                 id="name"
                 placeholder="Enter category name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  if (e.target.value.trim()) {
+                    setError('')
+                  }
+                }}
                 className={error ? 'border-red-500' : ''}
               />
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -79,8 +87,8 @@ export function NewCategoryDialog({ onAddCategory, isLoading = false }: NewCateg
           <DialogFooter>
             <Button 
               type="submit" 
-              disabled={isLoading}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
+              disabled={isDisabled}
+              className={`${isDisabled ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
             >
               {isLoading ? 'Adding...' : 'Add Category'}
             </Button>

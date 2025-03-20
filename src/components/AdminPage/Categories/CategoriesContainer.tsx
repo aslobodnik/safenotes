@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input'
 import { api } from '@/utils/trpc'
 import { CategoriesRow } from '@/components/AdminPage/Categories/CategoriesRow'
 import { NewCategoryDialog } from '@/components/AdminPage/Categories/NewCategoryDialog'
+import { EditCategoryDialog } from '@/components/AdminPage/Categories/EditCategoryDialog'
 import { toast } from 'sonner'
+
 interface CategoriesContainerProps {
     organizationId: string
     categories: Array<{
@@ -17,6 +19,7 @@ interface CategoriesContainerProps {
 
 export function CategoriesContainer({ organizationId, categories, isLoading, isAdmin }: CategoriesContainerProps) {
     const [searchTerm, setSearchTerm] = useState('')
+    const [editCategory, setEditCategory] = useState<{id: string, name: string} | null>(null)
     const utils = api.useUtils()
 
     // Create category mutation
@@ -35,6 +38,24 @@ export function CategoriesContainer({ organizationId, categories, isLoading, isA
             })
         }
     })
+    
+    // Update category mutation
+    const { mutate: updateCategory, isPending: updateLoading } = api.categories.updateCategory.useMutation({
+        onSuccess: () => {
+            utils.categories.getCategoriesByOrganization.invalidate({ organizationId })
+            toast.success("Category updated successfully", {
+                duration: 5000,
+            })
+            setEditCategory(null)
+        },
+        onError: (error: any) => {
+            console.error('Error updating category:', error)
+            toast.error("Error updating category", {
+                description: error.message || "An unexpected error occurred. Please try again.",
+                duration: 5000,
+            })
+        }
+    })
 
     // Filter categories based on search term
     const filteredCategories = categories?.filter(cat =>
@@ -48,6 +69,33 @@ export function CategoriesContainer({ organizationId, categories, isLoading, isA
             name: name.trim(),
             organizationId
         })
+    }
+    
+    const handleEditCategory = (id: string, name: string) => {
+        // Additional validation before sending to the server
+        if (!name.trim()) return;
+        
+        // Check for duplicates (this is redundant with dialog validation but provides extra safety)
+        const existingCategory = categories.find(
+            cat => cat.id !== id && cat.name.toLowerCase() === name.toLowerCase()
+        );
+        
+        if (existingCategory) {
+            toast.error("Category already exists", {
+                description: `A category named "${name}" already exists.`,
+                duration: 5000,
+            });
+            return;
+        }
+        
+        updateCategory({
+            id,
+            name: name.trim(),
+        });
+    }
+    
+    const handleOpenEdit = (category: {id: string, name: string}) => {
+        setEditCategory(category)
     }
 
     const invalidateCategories = () => {
@@ -106,6 +154,8 @@ export function CategoriesContainer({ organizationId, categories, isLoading, isA
                                         canEditOrDelete={isAdmin}
                                         onDeleteSuccess={invalidateCategories}
                                         onUpdateSuccess={invalidateCategories}
+                                        onEdit={() => handleOpenEdit(category)}
+                                        organizationId={organizationId}
                                     />
                                 ))}
                             </div>
@@ -121,6 +171,18 @@ export function CategoriesContainer({ organizationId, categories, isLoading, isA
                     </div>
                 </div>
             </div>
+            
+            {/* Edit Category Dialog */}
+            {editCategory && (
+                <EditCategoryDialog
+                    isOpen={!!editCategory}
+                    onClose={() => setEditCategory(null)}
+                    category={editCategory}
+                    allCategories={categories}
+                    onSave={handleEditCategory}
+                    isLoading={updateLoading}
+                />
+            )}
         </div>
     )
 }

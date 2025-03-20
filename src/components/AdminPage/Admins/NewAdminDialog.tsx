@@ -61,7 +61,7 @@ export function NewAdminDialog({ onAddAdmin, isLoading = false }: NewAdminDialog
       <DialogTrigger asChild>
         <Button className="bg-blue-500 hover:bg-blue-600 text-white">
           <Plus className="h-4 w-4 md:mr-2" />
-          <span className="hidden md:inline">Add Admin</span>
+          <span className="hidden md:inline">Add</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-900">
