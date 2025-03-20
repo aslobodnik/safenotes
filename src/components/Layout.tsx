@@ -38,21 +38,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center">
             <div className="flex items-center mr-4">
               <Link
-                href="/"
-                className={`px-3 py-2 rounded-md text-sm font-medium ${currentPath === '/'
-                    ? 'text-brand font-semibold'
-                    : 'text-gray-700 hover:text-brand'
-                  }`}
-              >
-                <span className="hidden sm:inline">Home</span>
-                <Home className="inline sm:hidden" size={18} />
-              </Link>
-
-              <Link
                 href={`/admin`}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${currentPath.startsWith('/admin')
-                    ? 'text-brand font-semibold'
-                    : 'text-gray-700 hover:text-brand'
+                  ? 'text-brand font-semibold'
+                  : 'text-gray-700 hover:text-brand'
                   }`}
               >
                 <span className="hidden sm:inline">Admin</span>
@@ -72,25 +61,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Link
           className="transition-colors duration-300 hover:text-brand"
           target="_blank"
-          href="https://ens.domains/"
-        >
-          ENS
-        </Link>{' '}
-        /{' '}
-        <Link
-          className="transition-colors duration-300 hover:text-brand"
-          target="_blank"
-          href="https://docs.ens.domains/dao"
-        >
-          Goverance
-        </Link>{' '}
-        /
-        <Link
-          className="transition-colors duration-300 hover:text-brand"
-          target="_blank"
           href="https://github.com/aslobodnik/safenotes"
         >
           Github
+        </Link>
+        /
+        <Link
+          href="https://t.me/limes_eth"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors duration-300 hover:text-brand"
+        >
+          Contact Us
         </Link>
       </footer>
     </div>

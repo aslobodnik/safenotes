@@ -121,7 +121,7 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
       }) || '0'
 
   return (
-    <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+    <div className="flex flex-row items-start gap-4 sm:items-center">
       <HoverCard openDelay={200} closeDelay={300}>
         <HoverCardTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-200 px-4 py-2 pr-8">
           <Users size={24} className="text-neutral-700" />
@@ -167,12 +167,9 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
       </HoverCard>
 
       <HoverCard openDelay={200} closeDelay={300}>
-        <HoverCardTrigger className="inline-flex min-w-[180px] cursor-pointer items-center justify-between gap-2 rounded-md border border-neutral-200 px-4 py-2">
+        <HoverCardTrigger className="inline-flex cursor-pointer items-center justify-between gap-2 rounded-md border border-neutral-200 px-4 py-2">
           <Wallet size={24} className="text-neutral-700" />
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-900">{totalUSDCBalance}</span>
-            <span className="text-sm">USDC</span>
-          </div>
+            <span className="text-sm"> Balance</span>
         </HoverCardTrigger>
         <HoverCardContent className="w-[300px]" align="start" sideOffset={4}>
           <div className="space-y-2">

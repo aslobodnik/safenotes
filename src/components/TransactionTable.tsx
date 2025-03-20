@@ -24,7 +24,7 @@ import {
 import { truncateAddress } from '@/lib/utils'
 import { type AddressMap, fetchEnsNames } from '@/utils/fetch-ens-names'
 import { api } from '@/utils/trpc'
-import { TransactionCard } from '@/components/TransactionCard'
+import { TransactionCard } from '@/components/TransactionComponent/TransactionCard'
 
 interface TransactionTableProps {
   transfers: TransferItem[]
@@ -467,7 +467,7 @@ export default function TransactionTable({
       </div>
 
       {/* Mobile View */}
-      <div className="md:hidden space-y-4 p-4">
+      <div className="md:hidden">
         {paginatedTransfers.map((transfer) => (
           <TransactionCard
             key={`${transfer.transferId}-${transfer.viewType}`}

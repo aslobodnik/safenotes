@@ -63,7 +63,7 @@ export function TransactionCard({
       )} ${transfer.tokenSymbol}`;
 
   return (
-    <div className="rounded-lg border p-4">
+    <div className="border-b p-4">
       <div className="space-y-3">
         {/* Header with amount and direction */}
         <div className="flex items-center justify-between">
@@ -88,7 +88,7 @@ export function TransactionCard({
 
         {/* From Address */}
         <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">From</div>
+          <div className="text-sm text-muted-foreground font-bold">From</div>
           <Link
             href={`https://etherscan.io/address/${transfer.fromAddress}`}
             target="_blank"
@@ -101,7 +101,7 @@ export function TransactionCard({
 
         {/* To Address */}
         <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">To</div>
+          <div className="text-sm text-muted-foreground font-bold">To</div>
           <Link
             href={`https://etherscan.io/address/${transfer.toAddress}`}
             target="_blank"
@@ -114,17 +114,22 @@ export function TransactionCard({
 
         {/* Category and Description */}
         <div className="space-y-1">
+          <div className="text-sm text-muted-foreground font-bold">Category</div>
           <span className="text-sm font-medium">
             {getCategoryName(transfer.transferId)}
           </span>
+        </div>
+
+        <div className="space-y-1">
+          <div className="text-sm text-muted-foreground font-bold">Description</div>
           <HoverCard openDelay={200}>
             <HoverCardTrigger className="block">
-              <div className="text-sm text-muted-foreground truncate">
+              <div className="text-sm truncate">
                 {getCategoryDescription(transfer.transferId)}
               </div>
             </HoverCardTrigger>
             <HoverCardContent className="w-80">
-              <p className="text-sm">{getCategoryDescription(transfer.transferId)}</p>
+              <p className="text-sm font-medium">{getCategoryDescription(transfer.transferId)}</p>
             </HoverCardContent>
           </HoverCard>
         </div>
