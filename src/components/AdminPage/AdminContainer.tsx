@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '@/utils/trpc'
 import { adminAddresses } from '@/lib/auth';
 import { useSession } from 'next-auth/react';
+import { Info } from 'lucide-react';
 import AdminDesktopView from './AdminDesktopView';
 import AdminMobileView from './AdminMobileView';
 
@@ -90,6 +91,12 @@ export function AdminContainer({ orgId }: AdminContainerProps) {
 
     return (
         <div className="mt-6 relative w-full overflow-hidden">
+            {!isAdmin && (
+                <div className="bg-blue-50 border border-blue-100 text-blue-700 px-4 py-3 mb-6 rounded-md flex items-center text-sm">
+                    <Info size={20} className="mr-2" />
+                    View-only mode. Connect an admin wallet to make changes.
+                </div>
+            )}
             <div className="hidden md:block">
                 <AdminDesktopView 
                     orgId={orgId} 
