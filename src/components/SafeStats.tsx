@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Users, Wallet } from 'lucide-react'
 import { Address, getAddress } from 'viem'
+import { useState } from 'react'
 
 import {
   HoverCard,
@@ -32,6 +33,9 @@ interface SafeStatsProps {
 }
 
 export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
+  const [isSignersOpen, setIsSignersOpen] = useState(false)
+  const [isBalanceOpen, setIsBalanceOpen] = useState(false)
+
   const { data: signersData } = useQuery({
     queryKey: ['safe-info', safeAddress],
     queryFn: async () => {
@@ -122,13 +126,23 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
 
   return (
     <div className="flex flex-row items-start gap-4 sm:items-center">
-      <HoverCard openDelay={200} closeDelay={300}>
-        <HoverCardTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-200 px-4 py-2 pr-8">
-          <Users size={24} className="text-neutral-700" />
-          <span className="text-sm text-neutral-900">Signers</span>
-          <span className="">
-            ({signersData?.threshold || 0}/{signersData?.owners?.length || 0})
-          </span>
+      <HoverCard 
+        openDelay={200} 
+        closeDelay={300} 
+        open={isSignersOpen} 
+        onOpenChange={setIsSignersOpen}
+      >
+        <HoverCardTrigger 
+          asChild
+          onClick={() => setIsSignersOpen(!isSignersOpen)}
+        >
+          <div className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-200 px-4 py-2 pr-8">
+            <Users size={24} className="text-neutral-700" />
+            <span className="text-sm text-neutral-900">Signers</span>
+            <span className="">
+              ({signersData?.threshold || 0}/{signersData?.owners?.length || 0})
+            </span>
+          </div>
         </HoverCardTrigger>
         <HoverCardContent className="w-[300px]" align="start" sideOffset={4}>
           <div className="space-y-2">
@@ -166,10 +180,20 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
         </HoverCardContent>
       </HoverCard>
 
-      <HoverCard openDelay={200} closeDelay={300}>
-        <HoverCardTrigger className="inline-flex cursor-pointer items-center justify-between gap-2 rounded-md border border-neutral-200 px-4 py-2">
-          <Wallet size={24} className="text-neutral-700" />
+      <HoverCard 
+        openDelay={200} 
+        closeDelay={300} 
+        open={isBalanceOpen} 
+        onOpenChange={setIsBalanceOpen}
+      >
+        <HoverCardTrigger 
+          asChild
+          onClick={() => setIsBalanceOpen(!isBalanceOpen)}
+        >
+          <div className="inline-flex cursor-pointer items-center justify-between gap-2 rounded-md border border-neutral-200 px-4 py-2">
+            <Wallet size={24} className="text-neutral-700" />
             <span className="text-sm"> Balance</span>
+          </div>
         </HoverCardTrigger>
         <HoverCardContent className="w-[300px]" align="start" sideOffset={4}>
           <div className="space-y-2">
