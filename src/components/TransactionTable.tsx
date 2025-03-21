@@ -21,11 +21,10 @@ import {
   type TransferCategoryItem,
   type TransferItem,
 } from '@/db/schema'
-import { adminAddresses } from '@/lib/auth'
 import { truncateAddress } from '@/lib/utils'
 import { type AddressMap, fetchEnsNames } from '@/utils/fetch-ens-names'
 import { api } from '@/utils/trpc'
-import { TransactionCard } from '@/components/TransactionCard'
+import { TransactionCard } from '@/components/TransactionComponent/TransactionCard'
 
 interface TransactionTableProps {
   transfers: TransferItem[]
@@ -34,6 +33,7 @@ interface TransactionTableProps {
   isLoading: boolean
   categories: CategoryItem[]
   allSafes: SafeItem[]
+  isAdmin: boolean
 }
 
 interface PaginationProps {
@@ -187,11 +187,10 @@ export default function TransactionTable({
   isLoading,
   categories,
   allSafes,
+  isAdmin,
 }: TransactionTableProps) {
   const { data: session } = useSession()
 
-  // TODO: Check if the user is a signer on the Safe. This currently only checks if they are a global admin
-  const isAdmin = adminAddresses.includes(session?.user?.name || '')
   const [currentPage, setCurrentPage] = useState(1)
   const [ensNames, setEnsNames] = useState<AddressMap>({})
   const [editingTransfer, setEditingTransfer] = useState<string | null>(null)
@@ -468,7 +467,7 @@ export default function TransactionTable({
       </div>
 
       {/* Mobile View */}
-      <div className="md:hidden space-y-4 p-4">
+      <div className="md:hidden">
         {paginatedTransfers.map((transfer) => (
           <TransactionCard
             key={`${transfer.transferId}-${transfer.viewType}`}

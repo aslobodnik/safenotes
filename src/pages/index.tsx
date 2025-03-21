@@ -64,9 +64,9 @@ export default function Home() {
         <div className="space-y-8">
           <div className="flex justify-between">
             <div className="flex flex-col gap-3">
-              <h1 className="text-4xl font-bold">SafeNotes</h1>
+              <h1 className="text-4xl font-bold">Explore Safes</h1>
               <div className="text-neutral-500">
-                Decoding DAO transactions one note at time.
+                SafeNotes decodes DAO transactions one note at a time.
               </div>
             </div>
             {/* Desktop contact section - hidden on mobile */}

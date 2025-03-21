@@ -1,5 +1,7 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
+import { publicClient } from '@/lib/web3'
+import { Address } from 'viem'
 
 import { organizationAdmins, organizations } from '@/db/schema'
 import {
@@ -129,9 +131,20 @@ export const adminRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      try {
         // Normalize the wallet address
         const normalizedAddress = getAddress(input.walletAddress);
+        // Check if this is the last admin in the organization
+        const admins = await ctx.db
+          .select()
+          .from(organizationAdmins)
+          .where(eq(organizationAdmins.organizationId, input.organizationId));
+          
+        if (admins.length <= 1) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot remove the last admin from an organization',
+          });
+        }
 
         // Remove the admin
         await ctx.db
@@ -149,12 +162,85 @@ export const adminRouter = createTRPCRouter({
           .from(organizationAdmins)
           .where(eq(organizationAdmins.organizationId, input.organizationId))
           .orderBy(asc(organizationAdmins.createdAt));
+    }),
+
+  // Get all organizations where a wallet address is an admin
+  getOrgsByAdmin: publicProcedure
+    .input(
+      z.object({
+        walletAddress: z.string().refine(
+          (address) => {
+            try {
+              // Validate and normalize the Ethereum address
+              getAddress(address);
+              return true;
+            } catch (error) {
+              console.error('Error validating address:', error)
+              return false;
+            }
+          },
+          {
+            message: 'Invalid Ethereum address format',
+          }
+        ),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        // Normalize the wallet address
+        const normalizedAddress = getAddress(input.walletAddress);
+        
+        // Find all organization IDs where this wallet is an admin
+        const adminOrgs = await ctx.db
+          .select({
+            organizationId: organizationAdmins.organizationId
+          })
+          .from(organizationAdmins)
+          .where(eq(organizationAdmins.walletAddress, normalizedAddress));
+        
+        if (adminOrgs.length === 0) {
+          return [];
+        }
+        
+        // Get the organization IDs
+        const orgIds = adminOrgs.map(org => org.organizationId);
+        
+        // Fetch the complete organization details
+        const orgs = await ctx.db
+          .select()
+          .from(organizations)
+          .where(
+            // Using inArray operator for Drizzle ORM
+            inArray(organizations.id, orgIds)
+          );
+          
+        return orgs;
       } catch (error) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to remove admin',
+          message: 'Failed to get organizations for admin',
           cause: error,
         });
       }
+    }),
+    getOrgAdminsWithEnsName: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.string().uuid(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const admins = await ctx.db
+        .select()
+        .from(organizationAdmins)
+        .where(eq(organizationAdmins.organizationId, input.organizationId));
+    
+        const adminsWithEnsName = await Promise.all(admins.map(async (admin) => {
+          const ensName = await publicClient.getEnsName({
+            address: admin.walletAddress as Address,
+          })
+          return { ...admin, ensName }
+        }))
+        return adminsWithEnsName
     }),
 });

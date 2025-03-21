@@ -12,12 +12,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus } from 'lucide-react'
+import { getAddress } from 'viem'
 
-interface NewCategoryDialogProps {
+interface NewAdminDialogProps {
   /**
-   * Function to call when a new category is added
+   * Function to call when a new admin is added
    */
-  onAddCategory: (name: string) => void
+  onAddAdmin: (address: string) => void
   
   /**
    * Whether the add operation is currently loading
@@ -25,52 +26,60 @@ interface NewCategoryDialogProps {
   isLoading?: boolean
 }
 
-export function NewCategoryDialog({ onAddCategory, isLoading = false }: NewCategoryDialogProps) {
+export function NewAdminDialog({ onAddAdmin, isLoading = false }: NewAdminDialogProps) {
   const [open, setOpen] = useState(false)
-  const [name, setName] = useState('')
+  const [address, setAddress] = useState('')
   const [error, setError] = useState('')
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     
-    if (!name.trim()) {
-      setError('Category name cannot be empty')
+    if (!address.trim()) {
+      setError('Wallet address cannot be empty')
       return
     }
     
-    // Call the parent component's function
-    onAddCategory(name.trim())
-    
-    // Reset form and close dialog
-    setName('')
-    setOpen(false)
+    try {
+      // Validate and normalize the address
+      const normalizedAddress = getAddress(address.trim())
+      
+      // Call the parent component's function
+      onAddAdmin(normalizedAddress)
+      
+      // Reset form and close dialog
+      setAddress('')
+      setOpen(false)
+    } catch (err) {
+      console.error(err)
+      setError('Invalid Ethereum address format')
+    }
   }
   
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-blue-500 hover:bg-blue-600 text-white">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
+          <Plus className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">Add</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-900">
         <DialogHeader>
-          <DialogTitle>Add New Category</DialogTitle>
+          <DialogTitle>Add New Admin</DialogTitle>
           <DialogDescription>
-            Enter the name of the transaction category you want to add.
+            Enter the Ethereum wallet address of the admin you want to add.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Category Name</Label>
+              <Label htmlFor="address">Wallet Address</Label>
               <Input
-                id="name"
-                placeholder="Enter category name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                id="address"
+                placeholder="0x..."
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
                 className={error ? 'border-red-500' : ''}
               />
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -82,7 +91,7 @@ export function NewCategoryDialog({ onAddCategory, isLoading = false }: NewCateg
               disabled={isLoading}
               className="bg-blue-500 hover:bg-blue-600 text-white"
             >
-              {isLoading ? 'Adding...' : 'Add Category'}
+              {isLoading ? 'Adding...' : 'Add Admin'}
             </Button>
           </DialogFooter>
         </form>

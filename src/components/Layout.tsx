@@ -2,61 +2,77 @@ import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAccount, useEnsAvatar, useEnsName } from 'wagmi'
+import { useRouter } from 'next/router'
+import { Settings } from 'lucide-react'
 
 import { useIsMounted } from '@/hooks/useIsMounted'
 import { truncateAddress } from '@/lib/utils'
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const currentPath = router.pathname
+
   return (
     <div className="mx-auto flex max-w-7xl flex-col">
       {/* Header/Navigation Bar */}
-      <nav className="flex items-center justify-between p-8">
+      <nav className="flex items-center justify-between p-4">
         {/* Left side - Brand */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-xl font-bold text-brand"
-        >
-          <Image
-            src="/img/logo-safenotes.svg"
-            alt="ENS Logo"
-            width={20}
-            height={14}
-          />
+        <div>
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-xl font-bold text-brand"
+          >
+            <Image
+              src="/img/logo-safenotes.svg"
+              alt="ENS Logo"
+              width={20}
+              height={14}
+            />
 
-          <span className="text-neutral-900"> SafeNotes</span>
-        </Link>
+            <span className="text-neutral-900"> SafeNotes</span>
+          </Link>
+        </div>
 
-        {/* Right side - Buttons */}
-        <div className="flex items-center gap-4">
-          <ConnectButton />
+        <div>
+          {/* Right side - Buttons */}
+          <div className="flex items-center">
+            <div className="flex items-center mr-4">
+              <Link
+                href={`/admin`}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${currentPath.startsWith('/admin')
+                  ? 'text-brand font-semibold'
+                  : 'text-gray-700 hover:text-brand'
+                  }`}
+              >
+                <span className="hidden sm:inline">Admin</span>
+                <Settings className="inline sm:hidden" size={18} />
+              </Link>
+            </div>
+            <ConnectButton />
+          </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="p-8">{children}</main>
+      <main className="p-8">
+        {children}
+      </main>
       <footer className="mr-8 flex items-center justify-end gap-4 p-4">
-        <Link
-          className="transition-colors duration-300 hover:text-brand"
-          target="_blank"
-          href="https://ens.domains/"
-        >
-          ENS
-        </Link>{' '}
-        /{' '}
-        <Link
-          className="transition-colors duration-300 hover:text-brand"
-          target="_blank"
-          href="https://docs.ens.domains/dao"
-        >
-          Goverance
-        </Link>{' '}
-        /
         <Link
           className="transition-colors duration-300 hover:text-brand"
           target="_blank"
           href="https://github.com/aslobodnik/safenotes"
         >
           Github
+        </Link>
+        /
+        <Link
+          href="https://t.me/limes_eth"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors duration-300 hover:text-brand"
+        >
+          Contact Us
         </Link>
       </footer>
     </div>
@@ -87,7 +103,7 @@ function ConnectButton() {
   if (address && isMounted) {
     return (
       <div
-        className="flex items-center gap-2 rounded-md border border-brand pr-2 text-brand hover:cursor-pointer hover:bg-brand/10"
+        className="flex items-center gap-2 rounded-md border border-brand pr-2 text-brand hover:cursor-pointer hover:bg-brand/10 overflow-hidden"
         onClick={handleOpenAccountModal}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -97,13 +113,14 @@ function ConnectButton() {
           className="h-9 w-9 rounded-l-md"
         />
         <span>{name ?? truncateAddress(address)}</span>
+
       </div>
     )
   }
 
   return (
     <button
-      className="rounded-md bg-brand px-4 py-2 text-white hover:bg-brand/90"
+      className="rounded-md bg-brand px-4 py-2 text-white hover:bg-brand/90 overflow-hidden"
       onClick={handleOpenConnectModal}
     >
       Connect
