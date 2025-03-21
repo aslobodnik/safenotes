@@ -1,12 +1,13 @@
 import { format } from 'date-fns'
+import { Pencil } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Pencil } from 'lucide-react';
 
 import { EditCategoryDialog } from '@/components/EditCategoryDialog'
 import { TableSkeleton } from '@/components/TableSkeleton'
+import { TransactionCard } from '@/components/TransactionComponent/TransactionCard'
 import { TransactionTableHeader } from '@/components/transaction-table/TableHeader'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +25,6 @@ import {
 import { truncateAddress } from '@/lib/utils'
 import { type AddressMap, fetchEnsNames } from '@/utils/fetch-ens-names'
 import { api } from '@/utils/trpc'
-import { TransactionCard } from '@/components/TransactionComponent/TransactionCard'
 
 interface TransactionTableProps {
   transfers: TransferItem[]
@@ -159,6 +159,14 @@ const TransactionDirectionAmount = ({
           }
         )} ${tokenSymbol}`
 
+  const fullEthAmount =
+    tokenSymbol === 'ETH' || tokenSymbol === 'WETH' || !tokenSymbol
+      ? `${(Number(amount) / Math.pow(10, 18)).toLocaleString(undefined, {
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5,
+        })} ${tokenSymbol || 'ETH'}`
+      : null
+
   return (
     <div className="flex flex-col items-center gap-2 lg:flex-row">
       <Link
@@ -175,7 +183,22 @@ const TransactionDirectionAmount = ({
           height={32}
         />
       </Link>
-      <span className="w-full text-center lg:text-left">{formattedAmount}</span>
+      {fullEthAmount ? (
+        <HoverCard openDelay={200}>
+          <HoverCardTrigger asChild>
+            <span className="w-full cursor-help text-center lg:text-left">
+              {formattedAmount}
+            </span>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-fit">
+            <p className="font-mono text-sm">{fullEthAmount}</p>
+          </HoverCardContent>
+        </HoverCard>
+      ) : (
+        <span className="w-full text-center lg:text-left">
+          {formattedAmount}
+        </span>
+      )}
     </div>
   )
 }
@@ -199,6 +222,12 @@ export default function TransactionTable({
   // Process transfers to create rows for each safe involved
   const processedTransfers = transfers
     .filter((transfer) => {
+      // Don't filter ETH transfers - show all of them
+      if (transfer.type === 'ETHER_TRANSFER') {
+        return true
+      }
+
+      // For other tokens, apply the 0.99 threshold
       const decimals = transfer.tokenDecimals || 18
       const value = Number(transfer.value) / Math.pow(10, decimals)
       return value >= 0.99 // threshold to show transfers
@@ -363,7 +392,7 @@ export default function TransactionTable({
           }
         />
       )}
-      
+
       {/* Desktop View */}
       <div className="hidden md:block">
         <Table>
