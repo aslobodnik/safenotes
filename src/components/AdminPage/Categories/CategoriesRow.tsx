@@ -22,7 +22,6 @@ export function CategoriesRow({ category, onDeleteSuccess, onUpdateSuccess, canE
   const [isEditing, setIsEditing] = useState(false)
   const [editedName, setEditedName] = useState(category.name)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const utils = api.useUtils()
 
   // Delete category mutation
   const { mutate: deleteCategory, isPending: deleteLoading } = api.categories.delete.useMutation({

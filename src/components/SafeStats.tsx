@@ -115,15 +115,6 @@ export const SafeStats = ({ safeAddress }: SafeStatsProps) => {
 
   if (!safeAddress) return null
 
-  const totalUSDCBalance =
-    balances
-      ?.filter((b) => b.token?.symbol === 'USDC')
-      .reduce((acc, b) => acc + Number(b.balance) / Math.pow(10, 6), 0)
-      .toLocaleString(undefined, {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }) || '0'
-
   return (
     <div className="flex flex-row items-start gap-4 sm:items-center">
       <HoverCard 

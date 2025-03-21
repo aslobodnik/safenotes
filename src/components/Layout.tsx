@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useAccount, useEnsAvatar, useEnsName } from 'wagmi'
 import { useRouter } from 'next/router'
-import { Home, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 
 import { useIsMounted } from '@/hooks/useIsMounted'
 import { truncateAddress } from '@/lib/utils'

@@ -48,7 +48,7 @@ export function CategoriesContainer({ organizationId, categories, isLoading, isA
             })
             setEditCategory(null)
         },
-        onError: (error: any) => {
+        onError: (error) => {
             console.error('Error updating category:', error)
             toast.error("Error updating category", {
                 description: error.message || "An unexpected error occurred. Please try again.",

@@ -1,17 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useAccount } from 'wagmi'
-import { useSession } from 'next-auth/react'
 import { Layout } from '@/components/Layout'
 import { api } from '@/utils/trpc'
 import { AdminContainer } from '@/components/AdminPage/AdminContainer'
 import { OrgHeader } from '@/components/OrgHeader'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+
 import { 
   Select, 
   SelectContent, 
@@ -86,7 +78,7 @@ export default function AdminDashboard() {
     if (!allOrgs || allOrgs.length <= 1) return null
     
     // Find the currently selected organization
-    const selectedOrg = allOrgs.find(org => org.id === selectedOrgId)
+    // const selectedOrg = allOrgs.find(org => org.id === selectedOrgId)
     
     return (
       <Select 
