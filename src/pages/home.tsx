@@ -31,7 +31,7 @@ export default function Home() {
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="ENS Safes Notes" />
+        <meta name="twitter:title" content="SafesNotes" />
         <meta
           name="twitter:description"
           content="Annotate multisig transactions. Build DAO transparency."
